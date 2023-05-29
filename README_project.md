@@ -1,13 +1,11 @@
-<div align="center">
+# python-kubectl-query
 
-# PROJECT_NAME_URL
+Query multiple cluster resources and join them together as tables
 
-A one-liner description of your project goes here.
-
-[![Build Status](https://github.com/USERNAME/PROJECT_NAME_URL/workflows/build/badge.svg)](https://github.com/USERNAME/PROJECT_NAME_URL/actions)
-[![Coverage Status](https://coveralls.io/repos/github/USERNAME/PROJECT_NAME_URL/badge.svg?branch=main)](https://coveralls.io/github/USERNAME/PROJECT_NAME_URL?branch=main)
-[![PyPi](https://img.shields.io/pypi/v/PROJECT_NAME_URL)](https://pypi.org/project/PROJECT_NAME_URL)
-[![Licence](https://img.shields.io/github/license/USERNAME/PROJECT_NAME_URL)](LICENSE)
+[![Build Status](https://github.com/gunther788/python-kubectl-query/workflows/build/badge.svg)](https://github.com/gunther788/python-kubectl-query/actions)
+[![Coverage Status](https://coveralls.io/repos/github/gunther788/python-kubectl-query/badge.svg?branch=main)](https://coveralls.io/github/gunther788/python-kubectl-query?branch=main)
+[![PyPi](https://img.shields.io/pypi/v/python-kubectl-query)](https://pypi.org/project/python-kubectl-query)
+[![Licence](https://img.shields.io/github/license/gunther788/python-kubectl-query)](LICENSE)
 
 <img src="https://raw.githubusercontent.com/justintime50/assets/main/src/python-template/showcase.png" alt="Showcase">
 
@@ -19,7 +17,7 @@ A longer paragraph description of your project goes here.
 
 ```bash
 # Install tool
-pip3 install project_name
+pip3 install kubectl_query
 
 # Install locally
 make install
