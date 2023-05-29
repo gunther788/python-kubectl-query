@@ -20,13 +20,13 @@ DEV_REQUIREMENTS = [
 ]
 
 setuptools.setup(
-    name='PROJECT_NAME_URL',
+    name='python-kubectl-query',
     version='0.1.0',
     description='Your project description here',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url='http://github.com/USERNAME/PROJECT_NAME_URL',
-    author='USERNAME',
+    url='http://github.com/gunther788/python-kubectl-query',
+    author='gunther788',
     license='MIT',
     packages=setuptools.find_packages(
         exclude=[
@@ -35,7 +35,7 @@ setuptools.setup(
         ]
     ),
     package_data={
-        'project_name': [
+        'kubectl_query': [
             'py.typed',
         ]
     },
@@ -50,7 +50,7 @@ setuptools.setup(
     },
     entry_points={
         'console_scripts': [
-            'PROJECT_NAME_URL=project_name.my_module:main',
+            'python-kubectl-query=kubectl_query.my_module:main',
         ]
     },
     python_requires='>=3.7, <4',

@@ -1,5 +1,5 @@
-import project_name
+import kubectl_query
 
 
 def test_main():
-    project_name.main()
+    kubectl_query.main()
