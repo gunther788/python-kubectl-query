@@ -1,0 +1,135 @@
+################################################################################
+# TABLES
+################################################################################
+
+tables:
+
+  nodes:
+    note: Nodes with their IPv4 addresses
+    api_version: v1
+    kind: Node
+    fields:
+      node: "$.metadata.name"
+      ipv4address: "$.metadata.annotations.\"projectcalico.org/IPv4Address\""
+
+  pods:
+    note: Pods with references to their owner
+    api_version: v1
+    kind: Pod
+    fields:
+      pod: "$.metadata.name"
+      namespace: "$.metadata.namespace"
+      node: "$.spec.nodeName"
+      owner: "$.metadata.ownerReferences[*].kind"
+      replicaset: "$.metadata.ownerReferences[*].name"
+      set: "$.metadata.ownerReferences[*].name"
+
+  pods-pvcs:
+    note: Pods with PVCs
+    api_version: v1
+    kind: Pod
+    fields:
+      pod: "$.metadata.name"
+      namespace: "$.metadata.namespace"
+      node: "$.spec.nodeName"
+      pvc: "$.spec.volumes[*].persistentVolumeClaim.claimName"
+
+  pods-ports:
+    note: Pods with Node and containerPort
+    api_version: v1
+    kind: Pod
+    fields:
+      pod: "$.metadata.name"
+      namespace: "$.metadata.namespace"
+      node: "$.spec.nodeName"
+      containerport: "$.spec.containers[*].ports[*].containerPort"
+
+  replicasets:
+    note: ReplicaSets with Deployments
+    api_version: v1
+    kind: ReplicaSet
+    fields:
+      replicaset: "$.metadata.name"
+      namespace: "$.metadata.namespace"
+      deployment: "$.metadata.ownerReferences[*].name"
+
+  deployments:
+    note: Deployments with replica count
+    api_version: v1
+    kind: Deployment
+    fields:
+      deployment: "$.metadata.name"
+      replicas: "$.spec.replicas"
+
+  statefulsets:
+    note: StatefulSets used to join
+    api_version: v1
+    kind: StatefulSet
+    fields:
+      set: "$.metadata.name"
+
+  pvcs:
+    note: PersistentVolumeClaims with Volumes
+    api_version: v1
+    kind: PersistentVolumeClaim
+    fields:
+      pvc: "$.metadata.name"
+      namespace: "$.metadata.namespace"
+      volume: "$.spec.volumeName"
+
+  pvs:
+    note: PersistentVolumes with StorageClass
+    api_version: v1
+    kind: PersistentVolume
+    fields:
+      volume: "$.metadata.name"
+      pvc: "$.spec.claimRef.name"
+      namespace: "$.spec.claimRef.namespace"
+      storageclass: "$.spec.storageClassName"
+
+  volumes:
+    note: Volumes with size and health
+    api_version: longhorn.io/v1beta2
+    kind: Volume
+    fields:
+      volume: "$.metadata.name"
+      size: "$.spec.size"
+      actualsize: "$.status.actualSize"
+      health: "$.status.robustness"
+      state: "$.status.state"
+
+  storageclasses:
+    note: StorageClasses with parameters
+    api_version: v1
+    kind: StorageClass
+    fields:
+      storageclass: "$.metadata.name"
+      reclaimpolicy: "$.reclaimPolicy"
+      bindingmode: "$.volumeBindingMode"
+
+
+################################################################################
+# QUERIES
+################################################################################
+
+queries:
+
+  pods-nodes:
+    note: Pods with matching StatefulSets and ReplicaSets/Deployments and Nodes
+    tables:
+      - pods
+      - replicasets
+      - statefulsets
+      - deployments
+      - nodes
+    hidden:
+      - replicaset
+
+  pods-volumes:
+    note: Pods with PersistentVolumeClaims and PersistentVolumes to Volumes
+    tables:
+      - pods-pvcs
+      - pvcs
+      - pvs
+      - storageclasses
+      - volumes

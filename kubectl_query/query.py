@@ -1,8 +1,9 @@
-import logging
 import functools
-import pandas as pd
-from .table import Table
+import logging
 
+import pandas as pd
+
+from .table import Table
 
 logger = logging.getLogger(__name__)
 

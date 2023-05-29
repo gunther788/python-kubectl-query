@@ -38,10 +38,9 @@ setuptools.setup(
             'test',
         ]
     ),
+    include_package_data=True,
     package_data={
-        'kubectl_query': [
-            'py.typed',
-        ]
+        'kubectl_query': ['py.typed'],
     },
     classifiers=[
         "Programming Language :: Python :: 3",

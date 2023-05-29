@@ -1,12 +1,11 @@
 import logging
-import sys
+
 import click
-from tabulate import tabulate
 from colors import color
+from tabulate import tabulate
 
 from .config import Config
 from .query import Query
-
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(format="# %(levelname)s: %(message)s")
@@ -24,8 +23,7 @@ CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
     "-c",
     "--config",
     "configfile",
-    default=f"{__file__}.yaml",
-    help=f"Provide a config file containing tables and queries, default {__file__}.yaml",
+    help="Provide a config file containing tables and queries",
 )
 @click.option(
     "-p",
@@ -84,6 +82,8 @@ def main(
     config = Config(configfile)
     queries = config.check_queries(queries)
 
+    logger.debug("  Config loaded, on to checking")
+
     if not queries:
         for message in config.get_available_queries():
             print(message)
@@ -115,4 +115,4 @@ def main(
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    main()
