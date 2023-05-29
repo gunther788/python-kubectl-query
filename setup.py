@@ -4,8 +4,12 @@ with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 REQUIREMENTS = [
-    # Add your list of production dependencies here, eg:
-    # 'requests == 2.*',
+    "kubernetes",
+    "click",
+    "ansicolors",
+    "jsonpath_ng",
+    "pandas",
+    "tabulate",
 ]
 
 DEV_REQUIREMENTS = [
@@ -22,7 +26,7 @@ DEV_REQUIREMENTS = [
 setuptools.setup(
     name='python-kubectl-query',
     version='0.1.0',
-    description='Your project description here',
+    description='Query multiple cluster resources and join them together as tables',
     long_description=long_description,
     long_description_content_type="text/markdown",
     url='http://github.com/gunther788/python-kubectl-query',
@@ -50,8 +54,8 @@ setuptools.setup(
     },
     entry_points={
         'console_scripts': [
-            'python-kubectl-query=kubectl_query.my_module:main',
+            'kubectl-query=kubectl_query:main',
         ]
     },
-    python_requires='>=3.7, <4',
+    python_requires='>=3.9, <4',
 )
