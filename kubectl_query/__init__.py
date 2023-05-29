@@ -1,4 +1,4 @@
-from kubectl_query.my_module import main
+from kubectl_query.main import main
 
 __all__ = [
     'main',
