@@ -1,12 +1,16 @@
 import logging
+import pkgutil
 import sys
+
 import yaml
-from jsonpath_ng import parse
-from kubernetes import dynamic, config as kubeconfig
-from kubernetes.client import api_client
 from colors import color
+from jsonpath_ng import parse
+from kubernetes import config as kubeconfig
+from kubernetes import dynamic
+from kubernetes.client import api_client
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class Config:
@@ -22,26 +26,31 @@ class Config:
 
         self._client = dynamic.DynamicClient(api_client.ApiClient(configuration=kubeconfig.load_kube_config()))
 
-        self.configfile = configfile
-        logger.debug(f"Reading {configfile}")
-        with open(configfile, "r", encoding="utf-8") as stream:
-            try:
-                self.config = yaml.safe_load(stream)
+        if configfile:
+            self.configfile = configfile
+            logger.debug(f"Reading {configfile}")
+            with open(configfile, "r", encoding="utf-8") as stream:
+                try:
+                    self.config = yaml.safe_load(stream)
 
-                # process tables
-                for table, prop in self.config.get("tables", {}).items():
-                    logger.debug(f"  Loading config for table {table}")
-                    # for fields we need to compile the path for l
-                    for field, path in prop.get("fields", {}).items():
-                        prop["fields"][field] = parse(path)
+                except yaml.YAMLError as exception:
+                    logger.critical(exception)
+                    sys.exit(2)
 
-                # process and queries
-                for query, prop in self.config.get("queries", {}).items():
-                    logger.debug(f"  Loading config for query {query}")
+        else:
+            stream = pkgutil.get_data(__name__, "config.yaml")
+            self.config = yaml.safe_load(stream)
 
-            except yaml.YAMLError as exception:
-                logger.critical(exception)
-                sys.exit(1)
+        # process tables
+        for table, prop in self.config.get("tables", {}).items():
+            logger.debug(f"  Loading config for table {table}")
+            # for fields we need to compile the path for l
+            for field, path in prop.get("fields", {}).items():
+                prop["fields"][field] = parse(path)
+
+        # process and queries
+        for query, prop in self.config.get("queries", {}).items():
+            logger.debug(f"  Loading config for query {query}")
 
     def get_available_queries(self):
         """

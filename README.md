@@ -7,10 +7,6 @@ Query multiple cluster resources and join them together as tables
 [![PyPi](https://img.shields.io/pypi/v/python-kubectl-query)](https://pypi.org/project/python-kubectl-query)
 [![Licence](https://img.shields.io/github/license/gunther788/python-kubectl-query)](LICENSE)
 
-<img src="https://raw.githubusercontent.com/justintime50/assets/main/src/python-template/showcase.png" alt="Showcase">
-
-</div>
-
 A longer paragraph description of your project goes here.
 
 ## Install
