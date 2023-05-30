@@ -10,7 +10,6 @@ from kubernetes import dynamic
 from kubernetes.client import api_client
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 class Config:

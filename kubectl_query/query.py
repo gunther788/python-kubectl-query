@@ -70,8 +70,8 @@ class Query(pd.DataFrame):
             self.drop(columns=hidden, inplace=True)
             logger.debug("  Dropped columns {hidden}")
 
-        # fill the NaN's with empty strings
-        self.fillna("", inplace=True)
+        # fill the NaN's with dashes
+        self.fillna("-", inplace=True)
 
         # if there's a pattern or patterns, look for rows matching those patterns
         # in any column
