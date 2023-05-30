@@ -32,9 +32,9 @@ jobs:
         run: make install
       - name: Run tests
         run: make coverage
-      - name: Coveralls
-        if: github.ref == 'refs/heads/main'
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: "./coverage.lcov"
+      #- name: Coveralls
+      #  if: github.ref == 'refs/heads/main'
+      #  uses: coverallsapp/github-action@master
+      #  with:
+      #    github-token: ${{ secrets.GITHUB_TOKEN }}
+      #    path-to-lcov: "./coverage.lcov"
