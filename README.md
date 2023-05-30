@@ -21,10 +21,14 @@ make install
 
 ## Usage
 
-Usage instructions go here.
+```bash
+/usr/local/bin/kubectl-query ...
+```
+
+or as `krew` plugin
 
 ```bash
-venv/bin/python my_script.py
+kubectl query ...
 ```
 
 ## Development
