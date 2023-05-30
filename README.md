@@ -31,6 +31,7 @@ Example:
 
 ```yaml
 tables:
+
   pods-pvcs:
     note: Pods with PVCs
     api_version: v1
@@ -80,9 +81,13 @@ resource can be defined multiple times, depending on the sets of fields and use 
 
 ### Queries
 
+Queries (`queries`) are then simply left-joined sets of tables defined above.
+
 Example:
 
 ```yaml
+queries:
+
   trident-pods:
     note: Trident Volumes with PVCs back to Pods
     tables:
@@ -102,6 +107,10 @@ Example:
 
 That's it -- we now have two queries that show a list of volumes and where (or not) they're used, and a list of
 pods linked all the way through the PV/PVCs down to the volumes used.
+
+Because of the way the tables are merged (left-join), the order matters: here we either start with all known
+TridentVolumes and amend the data with everything up to Pods, or we start with Pods and amend the storage
+data to that list -- the latter being smaller by all volumes allocated but unused.
 
 ## Install
 
