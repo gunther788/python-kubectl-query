@@ -24,7 +24,11 @@ class Config:
         to select fields later on
         """
 
-        self._client = dynamic.DynamicClient(api_client.ApiClient(configuration=kubeconfig.load_kube_config()))
+        try:
+            self._client = dynamic.DynamicClient(api_client.ApiClient(configuration=kubeconfig.load_kube_config()))
+        except Exception as exc:
+            logger.warning(f"Can't load Kubernetes config: {exc}")
+            pass
 
         if configfile:
             self.configfile = configfile

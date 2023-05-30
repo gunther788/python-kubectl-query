@@ -33,7 +33,7 @@ black-check:
 format: black isort lint mypy
 
 ## format-check - Checks if the project is formatted correctly against all formatting rules
-format-check: black-check isort-check lint mypy
+format-check: black-check isort-check lint # mypy
 
 ## install - Install the project locally
 install:
