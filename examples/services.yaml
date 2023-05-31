@@ -1,0 +1,25 @@
+---
+
+tables:
+
+  endpoints:
+    note: Endpoints with clusterIPs and ports
+    api_version: v1
+    kind: Endpoints
+    fields:
+      endpoint: "$.metadata.name"
+      namespace: "$.metadata.namespace"
+      addresses:
+        node: "$.subsets[*].addresses[*].nodeName"
+        clusterip: "$.subsets[*].addresses[*].ip"
+      ports:
+        port: "$.subsets[*].ports[*].port"
+        protocol: "$.subsets[*].ports[*].protocol"
+
+queries:
+
+  endpoints-nodes:
+    note: Details of clusterIPs on various nodes
+    tables:
+      - endpoints
+      - nodes

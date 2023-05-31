@@ -1,8 +1,6 @@
-import logging
-import pkgutil
 import glob
+import logging
 import os
-import sys
 
 import yaml
 from colors import color
@@ -65,9 +63,13 @@ class Config:
         # process tables
         for table, prop in self.config.get("tables", {}).items():
             logger.debug(f"  Loading config for table {table}")
-            # for fields we need to compile the path for l
+            # for fields we need to compile the path
             for field, path in prop.get("fields", {}).items():
-                prop["fields"][field] = parse(path)
+                if isinstance(path, dict):
+                    for subfield, subpath in path.items():
+                        prop["fields"][field][subfield] = parse(subpath)
+                elif isinstance(path, str):
+                    prop["fields"][field] = parse(path)
 
         # process and queries
         for query, prop in self.config.get("queries", {}).items():

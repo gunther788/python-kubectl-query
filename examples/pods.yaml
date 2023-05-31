@@ -58,7 +58,6 @@ tables:
     fields:
       set: "$.metadata.name"
 
-
 queries:
 
   pods-nodes:
