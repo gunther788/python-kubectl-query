@@ -9,8 +9,7 @@ Query multiple cluster resources and join them together as tables
 
 ## A Tour
 
-Say you've got pods using one persistent storage provided by the NetApp Trident backend, and you'd like
-to know:
+Say you've got pods using persistent storage provided by NetApp Trident, and you'd like to know:
 
 * which trident volumes are not in use anymore
 * which trident volumes are used on which node
@@ -25,7 +24,7 @@ These kinds of questions require:
 
 ### Tables
 
-Instead, let's define building blocks (`tables`) of data that is extracted from a given Kuberentes resource.
+Instead, let's define building blocks (`tables`) of data that are extracted from individual Kuberentes resources.
 
 Example:
 

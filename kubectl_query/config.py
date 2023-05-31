@@ -1,5 +1,7 @@
 import logging
 import pkgutil
+import glob
+import os
 import sys
 
 import yaml
@@ -9,7 +11,7 @@ from kubernetes import config as kubeconfig
 from kubernetes import dynamic
 from kubernetes.client import api_client
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('kubectl-query')
 
 
 class Config:
@@ -17,10 +19,28 @@ class Config:
     Represents the config file and does sanity checking of the input
     """
 
-    def __init__(self, configfile):
+    def merge_config(self, configpath):
         """
-        Parse the configuration file and compile the JSON paths needed
-        to select fields later on
+        Snarf in one more yaml file and return the dict, skip
+        with a warning if it can't be parsed
+        """
+        logger.debug(f"Reading {configpath}")
+        with open(configpath, "r", encoding="utf-8") as stream:
+            try:
+                new = yaml.safe_load(stream)
+                if 'tables' not in new and 'queries' not in new:
+                    logger.warning(f"{configpath} contains neither tables nor queries")
+
+            except yaml.YAMLError as exception:
+                logger.warning(exception)
+
+        self.config['tables'] = {**self.config['tables'], **new.get('tables', {})}
+        self.config['queries'] = {**self.config['queries'], **new.get('queries', {})}
+
+    def __init__(self, configpaths):
+        """
+        Parse the configuration files or directories and compile the
+        JSON paths needed to select fields later on
         """
 
         try:
@@ -29,20 +49,18 @@ class Config:
             logger.warning(f"Can't load Kubernetes config: {exc}")
             pass
 
-        if configfile:
-            self.configfile = configfile
-            logger.debug(f"Reading {configfile}")
-            with open(configfile, "r", encoding="utf-8") as stream:
-                try:
-                    self.config = yaml.safe_load(stream)
+        self.config = {'tables': {}, 'queries': {}}
 
-                except yaml.YAMLError as exception:
-                    logger.critical(exception)
-                    sys.exit(2)
+        for configpath in configpaths:
+            if os.path.isfile(configpath):
+                self.merge_config(configpath)
+            elif os.path.isdir(configpath):
+                for configfile in glob.glob(f"{configpath}/*.yaml"):
+                    self.merge_config(configfile)
+            else:
+                logger.warning(f"Don't know what to do with '{configpath}'")
 
-        else:
-            stream = pkgutil.get_data(__name__, "config.yaml")
-            self.config = yaml.safe_load(stream)
+        logger.debug("Compiling configs:")
 
         # process tables
         for table, prop in self.config.get("tables", {}).items():
@@ -54,6 +72,9 @@ class Config:
         # process and queries
         for query, prop in self.config.get("queries", {}).items():
             logger.debug(f"  Loading config for query {query}")
+            for table in prop['tables']:
+                if table not in self.config['tables']:
+                    logger.warning(f"Query '{query}' makes use of an unknown table '{table}'")
 
     def get_available_queries(self):
         """

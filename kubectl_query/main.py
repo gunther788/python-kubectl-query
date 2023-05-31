@@ -7,7 +7,7 @@ from tabulate import tabulate
 from .config import Config
 from .query import Query
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('kubectl-query')
 logging.basicConfig(format="# %(levelname)s: %(message)s")
 
 CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
@@ -22,8 +22,9 @@ CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
 @click.option(
     "-c",
     "--config",
-    "configfile",
-    help="Provide a config file containing tables and queries",
+    "configpaths",
+    multiple=True,
+    help="Provide config files or dirs containing table and query definitions",
 )
 @click.option(
     "-p",
@@ -55,7 +56,7 @@ CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
 # pylint: disable=too-many-arguments
 def main(
     verbose,
-    configfile,
+    configpaths,
     patterns,
     namespaces,
     tablefmt,
@@ -74,12 +75,12 @@ def main(
         logger.setLevel(logging.INFO)
 
     logger.debug("Options:")
-    logger.debug(f"  Config in {configfile}")
+    logger.debug(f"  Config in {configpaths}")
     logger.debug(f"  Patterns set to {patterns}")
     logger.debug(f"  Table format is {tablefmt}")
 
     # load the configuration file into our internal structure
-    config = Config(configfile)
+    config = Config(configpaths)
     queries = config.check_queries(queries)
 
     logger.debug("  Config loaded, on to checking")

@@ -1,0 +1,11 @@
+---
+
+tables:
+
+  nodes:
+    note: Nodes with their IPv4 addresses
+    api_version: v1
+    kind: Node
+    fields:
+      node: "$.metadata.name"
+      ipv4address: "$.metadata.annotations.\"projectcalico.org/IPv4Address\""
