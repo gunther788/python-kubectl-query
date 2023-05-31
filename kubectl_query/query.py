@@ -5,7 +5,7 @@ import pandas as pd
 
 from .table import Table
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('kubectl-query')
 
 
 class Query(pd.DataFrame):
@@ -39,7 +39,7 @@ class Query(pd.DataFrame):
 
         # for each kind of resource, build a table and append it to the data set
         for table in tablenames:
-            data.append(Table(config.client, **config.tables[table]))
+            data.append(Table(config.client, table, **config.tables[table]))
 
         # zip through the data set and pd.merge them all together
         result = functools.reduce(
@@ -68,7 +68,7 @@ class Query(pd.DataFrame):
 
         if hidden:
             self.drop(columns=hidden, inplace=True)
-            logger.debug("  Dropped columns {hidden}")
+            logger.debug(f"  Dropped columns {hidden}")
 
         # fill the NaN's with dashes
         self.fillna("-", inplace=True)

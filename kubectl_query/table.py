@@ -3,7 +3,7 @@ import logging
 
 import pandas as pd
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('kubectl-query')
 
 
 class Table(pd.DataFrame):
@@ -16,7 +16,7 @@ class Table(pd.DataFrame):
     multiple records
     """
 
-    def __init__(self, client, api_version, kind, fields, **_):
+    def __init__(self, client, table, api_version, kind, fields, **_):
         """
         Table is really just a fancy constructor for a DataFrame that stores
         the result of an API call in table format... the magic lies within
@@ -46,7 +46,7 @@ class Table(pd.DataFrame):
             # expand the result and add to table
             items.extend(product_dict(**item))
 
-        logger.debug(f"  Loaded {len(items)} {kind}")
+        logger.debug(f"  Loaded {len(items)} {table} ({kind})")
 
         # throw the resulting items into a DataFrame
         super().__init__(items)

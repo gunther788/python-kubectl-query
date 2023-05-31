@@ -1,0 +1,43 @@
+---
+
+tables:
+
+  pvcs:
+    note: PersistentVolumeClaims with Volumes
+    api_version: v1
+    kind: PersistentVolumeClaim
+    fields:
+      pvc: "$.metadata.name"
+      namespace: "$.metadata.namespace"
+      volume: "$.spec.volumeName"
+
+  pvs:
+    note: PersistentVolumes with StorageClass
+    api_version: v1
+    kind: PersistentVolume
+    fields:
+      volume: "$.metadata.name"
+      pvc: "$.spec.claimRef.name"
+      namespace: "$.spec.claimRef.namespace"
+      storageclass: "$.spec.storageClassName"
+
+  volumes:
+    note: Volumes with size and health
+    api_version: longhorn.io/v1beta2
+    kind: Volume
+    fields:
+      volume: "$.metadata.name"
+      size: "$.spec.size"
+      actualsize: "$.status.actualSize"
+      health: "$.status.robustness"
+      state: "$.status.state"
+
+  storageclasses:
+    note: StorageClasses with parameters
+    api_version: v1
+    kind: StorageClass
+    fields:
+      storageclass: "$.metadata.name"
+      reclaimpolicy: "$.reclaimPolicy"
+      bindingmode: "$.volumeBindingMode"
+
