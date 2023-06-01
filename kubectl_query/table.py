@@ -57,6 +57,11 @@ class Table(pd.DataFrame):
                     # dict of lists to list of dicts
                     item[field] = [dict(zip(subitem, i)) for i in zip(*subitem.values())]
 
+                elif isinstance(path, list):
+                    item[field] = [str(match.value) for match in path[0].find(entry)]
+                    for f in path[1:]:
+                        item[field] = [f(v) for v in item[field]]
+
                 else:
                     item[field] = [str(match.value) for match in path.find(entry)]
 

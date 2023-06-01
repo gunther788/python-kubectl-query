@@ -68,6 +68,10 @@ class Config:
                 if isinstance(path, dict):
                     for subfield, subpath in path.items():
                         prop["fields"][field][subfield] = parse(subpath)
+
+                elif isinstance(path, list):
+                    prop["fields"][field] = [parse(path[0])] + [eval(f) for f in path[1:]]
+
                 elif isinstance(path, str):
                     prop["fields"][field] = parse(path)
 
