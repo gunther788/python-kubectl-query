@@ -65,13 +65,17 @@ class Query(pd.DataFrame):
 
         # drop all columns configured to be 'hidden'
         hidden = self.query.get("hidden", [])
-
         if hidden:
             self.drop(columns=hidden, inplace=True)
             logger.debug(f"  Dropped columns {hidden}")
 
         # fill the NaN's with dashes
         self.fillna("-", inplace=True)
+
+        # sort the result
+        sort_by = self.query.get("sort", [])
+        if sort_by:
+            self.sort_values(by=sort_by, inplace=True)
 
         # if there's a pattern or patterns, look for rows matching those patterns
         # in any column

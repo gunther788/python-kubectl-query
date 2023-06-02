@@ -1,3 +1,4 @@
+import ipaddress  # noqa: F401
 import itertools
 import logging
 
@@ -25,6 +26,35 @@ class Table(pd.DataFrame):
         independently when joining other tables
         """
 
+        def extract_values(field, path, entry):
+            """
+            Fields can be defined as json paths, or json paths to be
+            processed with lambda functions (defined as lists) or they
+            are defined as a dict with subfields to be extracted, or
+            a combination of the above.
+
+            Returns a dict that can be merged into the table.
+            """
+            item = {}
+
+            if isinstance(path, dict):
+                subitem = {}
+                for subfield, subpath in path.items():
+                    subitem[subfield] = [match.value for match in subpath.find(entry)]
+
+                # dict of lists to list of dicts
+                item[field] = [dict(zip(subitem, i)) for i in zip(*subitem.values())]
+
+            elif isinstance(path, list):
+                item[field] = [str(match.value) for match in path[0].find(entry)]
+                for f in path[1:]:
+                    item[field] = [f(v) for v in item[field]]
+
+            else:
+                item[field] = [str(match.value) for match in path.find(entry)] or ['<none>']
+
+            return item
+
         def product_dict(**kwargs):
             """
             Unroll the combinations, may even be within a column if
@@ -49,21 +79,7 @@ class Table(pd.DataFrame):
             # extract fields by going through all paths requested
             item = {}
             for field, path in fields.items():
-                if isinstance(path, dict):
-                    subitem = {}
-                    for subfield, subpath in path.items():
-                        subitem[subfield] = [match.value for match in subpath.find(entry)]
-
-                    # dict of lists to list of dicts
-                    item[field] = [dict(zip(subitem, i)) for i in zip(*subitem.values())]
-
-                elif isinstance(path, list):
-                    item[field] = [str(match.value) for match in path[0].find(entry)]
-                    for f in path[1:]:
-                        item[field] = [f(v) for v in item[field]]
-
-                else:
-                    item[field] = [str(match.value) for match in path.find(entry)]
+                item.update(extract_values(field, path, entry))
 
             # expand the result and add to table
             items.extend(product_dict(**item))
