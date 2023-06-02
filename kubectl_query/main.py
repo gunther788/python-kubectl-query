@@ -90,7 +90,10 @@ def main(
             print(message)
         main.main(["--help"])
 
-    for query_name in queries:
+    for i, query_name in enumerate(queries):
+        if i > 0:
+            print()
+
         # load all required data
         result = Query(config, query_name, namespaces)
 
