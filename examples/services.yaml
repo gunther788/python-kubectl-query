@@ -2,24 +2,25 @@
 
 tables:
 
-  endpoints:
-    note: Endpoints with clusterIPs and ports
+  endpointslices:
+    note: EndpointSlices with clusterIPs and ports
     api_version: v1
-    kind: Endpoints
+    kind: EndpointSlice
     fields:
       endpoint: "$.metadata.name"
       namespace: "$.metadata.namespace"
       addresses:
-        node: "$.subsets[*].addresses[*].nodeName"
-        clusterip: "$.subsets[*].addresses[*].ip"
+        clusterip: "$.endpoints[*].addresses[*]"
+        owner: "$.endpoints[*].targetRef.kind"
+        node: "$.endpoints[*].targetRef.name"
       ports:
-        port: "$.subsets[*].ports[*].port"
-        protocol: "$.subsets[*].ports[*].protocol"
+        port: "$.ports[*].port"
+        protocol: "$.ports[*].protocol"
 
 queries:
 
   endpoints-nodes:
     note: Details of clusterIPs on various nodes
     tables:
-      - endpoints
+      - endpointslices
       - nodes
