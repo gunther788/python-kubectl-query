@@ -42,14 +42,19 @@ class Query(pd.DataFrame):
             data.append(Table(config.client, table, **config.tables[table]))
 
         # zip through the data set and pd.merge them all together
-        result = functools.reduce(
-            lambda left, right: pd.merge(
-                left,
-                right,
-                how="left",
-            ),
-            data,
-        )
+        try:
+            result = functools.reduce(
+                lambda left, right: pd.merge(
+                    left,
+                    right,
+                    how="left",
+                ),
+                data,
+            )
+        except Exception as e:
+            logger.critical(f"Could not join {tablenames} together: {e}")
+            result = []
+            pass
 
         logger.debug(f"Combined data for {query_name} for {len(result)} rows")
 
