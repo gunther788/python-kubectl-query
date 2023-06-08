@@ -89,19 +89,39 @@ class Config:
                 if table not in self.config['tables']:
                     logger.warning(f"Query '{query}' makes use of an unknown table '{table}'")
 
-    def check_queries(self, queries):
+    def unaliases(self):
+        """
+        Build a dict of all aliases for tables and queries
+        """
+        unalias = {}
+        for name, prop in list(self.tables.items()) + list(self.queries.items()):
+            for alias in prop.get('aliases', []):
+                unalias[alias] = name
+
+        logger.debug(f"Unlias map: {unalias}")
+        return unalias
+
+    def check_queries(self, iq):
         """
         Make sure that all requested queries are defined, otherwise show
         the user what we have
         """
 
-        available = list(self.config.get("queries", {}).keys()) + list(self.config.get("tables", {}).keys())
+        available = list(self.queries.keys()) + list(self.tables.keys())
+        unalias = self.unaliases()
 
-        if all(query in available for query in queries):
-            return queries
+        oq = []
+        for query in iq:
+            if query in unalias:
+                oq.append(unalias[query])
+            else:
+                oq.append(query)
 
-        errors = list(filter(lambda query: query not in available, queries))
-        logger.error(f"{errors} are neither tables nor queries")
+        if all(query in available for query in oq):
+            return oq
+
+        errors = list(filter(lambda query: query not in available, oq))
+        logger.error(f"{errors} are neither tables nor queries nor aliases for them")
         return []
 
     @property
@@ -112,12 +132,12 @@ class Config:
     @property
     def tables(self):
         """All available tables"""
-        return self.config["tables"]
+        return self.config["tables"] or {}
 
     @property
     def queries(self):
         """All available queries"""
-        return self.config["queries"]
+        return self.config["queries"] or {}
 
     def as_table(self, kind):
         """
@@ -129,6 +149,7 @@ class Config:
             available.append(
                 {
                     'name': name,
+                    'aliases': ', '.join(prop.get('aliases', [])) or None,
                     'file': prop.get('file', ''),
                     'references': ', '.join(prop.get('tables', [])) or None,
                     'note': prop.get('note', ""),
