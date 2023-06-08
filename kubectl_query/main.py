@@ -109,16 +109,17 @@ def main(
     logger.debug(f"  Patterns set to {patterns}")
     logger.debug(f"  Table format is {tablefmt}")
 
+    # shortcuts for help pages
+    if list_available or 'list' in queries:
+        queries = ['tables', 'queries']
+    elif not queries:
+        main.main(["--help"])
+
     # load the configuration file into our internal structure
     config = Config(configpaths)
     queries = config.check_queries(queries)
 
     logger.debug("  Config loaded, on to checking")
-
-    if list_available:
-        queries = ['list']
-    elif not queries:
-        main.main(["--help"])
 
     for i, query_name in enumerate(queries):
         if i > 0:
