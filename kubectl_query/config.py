@@ -1,4 +1,5 @@
 import glob
+import importlib
 import ipaddress  # noqa: F401
 import logging
 import os
@@ -55,6 +56,9 @@ class Config:
             pass
 
         self.config = {'tables': {}, 'queries': {}}
+
+        built_in = importlib.resources.files(__package__).joinpath('config')
+        configpaths = (built_in,) + configpaths
 
         for configpath in configpaths:
             if os.path.isfile(configpath):

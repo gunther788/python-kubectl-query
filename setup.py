@@ -34,13 +34,15 @@ setuptools.setup(
     license='MIT',
     packages=setuptools.find_packages(
         exclude=[
-            'examples',
             'test',
         ]
     ),
     include_package_data=True,
     package_data={
-        'kubectl_query': ['py.typed'],
+        'kubectl_query': [
+            'py.typed',
+            'config/*.yaml',
+        ],
     },
     classifiers=[
         "Programming Language :: Python :: 3",
