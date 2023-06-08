@@ -21,8 +21,8 @@ tables:
       namespace: "$.spec.claimRef.namespace"
       storageclass: "$.spec.storageClassName"
 
-  volumes:
-    note: Volumes with size and health
+  longhornvolumes:
+    note: Longhorn Volumes with size and health
     api_version: longhorn.io/v1beta2
     kind: Volume
     fields:
@@ -40,4 +40,3 @@ tables:
       storageclass: "$.metadata.name"
       reclaimpolicy: "$.reclaimPolicy"
       bindingmode: "$.volumeBindingMode"
-
