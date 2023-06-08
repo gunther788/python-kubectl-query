@@ -10,17 +10,17 @@ tables:
       endpoint: "$.metadata.name"
       namespace: "$.metadata.namespace"
       addresses:
-        clusterip: "$.endpoints[*].addresses[*]"
-        owner: "$.endpoints[*].targetRef.kind"
-        node: "$.endpoints[*].targetRef.name"
+        kind: "$.endpoints[*].targetRef.kind"
+        pod: "$.endpoints[*].targetRef.name"
+        podip: "$.endpoints[*].addresses[*]"
       ports:
         port: "$.ports[*].port"
         protocol: "$.ports[*].protocol"
 
 queries:
 
-  endpoints-nodes:
+  endpoints-pods-nodes:
     note: Details of clusterIPs on various nodes
     tables:
       - endpointslices
-      - nodes
+      - pods-ports

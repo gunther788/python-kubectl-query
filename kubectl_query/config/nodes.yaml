@@ -40,20 +40,9 @@ tables:
 queries:
 
   nodes-topology:
-    aliases:
-      - nt
     note: Nodes with extra topology data
     tables:
       - nodes
       - nodes-specs
       - nodes-labels
       - nodes-taints
-
-  nodes-endpoints:
-    aliases:
-      - ne
-    note: Nodes with Endpoints
-    tables:
-      - nodes
-      - nodes-labels
-      - endpointslices

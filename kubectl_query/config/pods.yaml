@@ -10,9 +10,8 @@ tables:
       pod: "$.metadata.name"
       namespace: "$.metadata.namespace"
       node: "$.spec.nodeName"
-      owner: "$.metadata.ownerReferences[*].kind"
-      replicaset: "$.metadata.ownerReferences[*].name"
-      set: "$.metadata.ownerReferences[*].name"
+      podip: "$.status.podIPs[*].ip"
+      podphase: "$.status.phase"
 
   pods-pvcs:
     note: Pods with PVCs
@@ -32,50 +31,22 @@ tables:
       pod: "$.metadata.name"
       namespace: "$.metadata.namespace"
       node: "$.spec.nodeName"
-      containerport: "$.spec.containers[*].ports[*].containerPort"
-
-  replicasets:
-    note: ReplicaSets with Deployments
-    api_version: v1
-    kind: ReplicaSet
-    fields:
-      replicaset: "$.metadata.name"
-      namespace: "$.metadata.namespace"
-      deployment: "$.metadata.ownerReferences[*].name"
-
-  deployments:
-    note: Deployments with replica count
-    api_version: v1
-    kind: Deployment
-    fields:
-      deployment: "$.metadata.name"
-      replicas: "$.spec.replicas"
-
-  statefulsets:
-    note: StatefulSets used to join
-    api_version: v1
-    kind: StatefulSet
-    fields:
-      set: "$.metadata.name"
+      podip: "$.status.podIPs[*].ip"
+      port: "$.spec.containers[*].ports[*].containerPort"
 
 queries:
 
-  pods-nodes:
-    note: Pods with matching StatefulSets and ReplicaSets/Deployments and Nodes
+  pods-nodes-storage:
+    note: Pods with Nodes and Storage
+    sort:
+      - zone
+      - tier
+      - namespace
+      - pod
     tables:
       - pods
-      - replicasets
-      - statefulsets
-      - deployments
       - nodes
-    hidden:
-      - replicaset
-
-  pods-volumes:
-    note: Pods with PersistentVolumeClaims and PersistentVolumes to Volumes
-    tables:
+      - nodes-labels
       - pods-pvcs
       - pvcs
       - pvs
-      - storageclasses
-      - volumes

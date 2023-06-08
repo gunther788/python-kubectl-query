@@ -1,5 +1,5 @@
 import glob
-import importlib
+import importlib.resources
 import ipaddress  # noqa: F401
 import logging
 import os
@@ -33,6 +33,7 @@ class Config:
 
             except yaml.YAMLError as exception:
                 logger.warning(exception)
+                new = {}
 
         filename = os.path.basename(configpath)
         for table, prop in new.get('tables', {}).items():
