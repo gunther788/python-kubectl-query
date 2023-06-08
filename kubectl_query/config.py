@@ -5,12 +5,10 @@ import os
 
 import pandas as pd
 import yaml
-from colors import color
 from jsonpath_ng import parse
 from kubernetes import config as kubeconfig
 from kubernetes import dynamic
 from kubernetes.client import api_client
-from tabulate import tabulate
 
 logger = logging.getLogger('kubectl-query')
 
@@ -87,52 +85,30 @@ class Config:
         # process and queries
         for query, prop in self.config.get("queries", {}).items():
             logger.debug(f"  Loading config for query {query}")
-            for table in prop['tables']:
+            for table in prop.get("tables", []):
                 if table not in self.config['tables']:
                     logger.warning(f"Query '{query}' makes use of an unknown table '{table}'")
 
-    def print_available_queries(self):
+    def available_queries(self):
         """
         Put together a table with all the available tables and queries
         """
 
-        help = []
+        available = []
 
-        for table, prop in sorted(self.config.get("tables", {}).items()):
-            help.append(
-                {
-                    'file': prop.get('file', ''),
-                    'kind': 'table',
-                    'name': color(table, 'green'),
-                    'note': prop.get('note', ""),
-                    'references': '-',
-                }
-            )
+        for kind, data in [('table', 'tables'), ('query', 'queries')]:
+            for name, prop in sorted(self.config.get(data, {}).items()):
+                available.append(
+                    {
+                        'file': prop.get('file', ''),
+                        'kind': kind,
+                        'name': name,
+                        'note': prop.get('note', ""),
+                        'references': ', '.join(prop.get('tables', [])) or None,
+                    }
+                )
 
-        for query, prop in sorted(self.config.get("queries", {}).items()):
-            tables = ', '.join([color(t, 'green') for t in prop.get('tables', [])])
-            help.append(
-                {
-                    'file': prop.get('file', ''),
-                    'kind': 'query',
-                    'name': color(query, 'yellow'),
-                    'note': prop.get('note', ""),
-                    'references': tables,
-                }
-            )
-
-        result = pd.DataFrame(help)
-        result.sort_values(by=['file', 'name'], inplace=True)
-
-        print(
-            tabulate(
-                result,
-                tablefmt="plain",
-                stralign="left",
-                showindex=False,
-                headers=[h.upper() for h in result.columns],
-            )
-        )
+        return pd.DataFrame(available)
 
     def check_queries(self, queries):
         """

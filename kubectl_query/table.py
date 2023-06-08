@@ -72,17 +72,23 @@ class Table(pd.DataFrame):
                 yield values
 
         # get all resources, all namespaces
-        resource = client.resources.get(api_version=api_version, kind=kind)
         items = []
 
-        for entry in resource.get().items:
-            # extract fields by going through all paths requested
-            item = {}
-            for field, path in fields.items():
-                item.update(extract_values(field, path, entry))
+        try:
+            resource = client.resources.get(api_version=api_version, kind=kind)
 
-            # expand the result and add to table
-            items.extend(product_dict(**item))
+            for entry in resource.get().items:
+                # extract fields by going through all paths requested
+                item = {}
+                for field, path in fields.items():
+                    item.update(extract_values(field, path, entry))
+
+                # expand the result and add to table
+                items.extend(product_dict(**item))
+
+        except Exception as e:
+            logger.warning(f"Failed to get {kind}, {e}")
+            pass
 
         logger.debug(f"  Loaded {len(items)} {table} ({kind})")
 

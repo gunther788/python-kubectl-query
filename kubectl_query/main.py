@@ -47,7 +47,8 @@ CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
     "--tablefmt",
     default="color",
     help="""
-    Table format to pass on to https://github.com/astanin/python-tabulate#table-format,
+    Table format to pass on to
+    https://github.com/astanin/python-tabulate#table-format,
     default `color` that is `plain` with custom colored output
     """,
 )
@@ -72,7 +73,7 @@ CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
 @click.option(
     "-l",
     "--list",
-    "list_queries",
+    "list_available",
     count=True,
     help="""
     Show available tables and queries
@@ -114,8 +115,8 @@ def main(
 
     logger.debug("  Config loaded, on to checking")
 
-    if list_queries:
-        config.print_available_queries()
+    if list_available:
+        queries = ['list']
     elif not queries:
         main.main(["--help"])
 
@@ -124,7 +125,7 @@ def main(
             print()
 
         # load all required data
-        result = Query(config, query_name, namespaces)
+        result = Query(config, query_name)
 
         # cleanup and filter
         result.postprocess(patterns, namespaces, sort_override, list_columns)
