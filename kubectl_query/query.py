@@ -13,7 +13,7 @@ class Query(pd.DataFrame):
     Represents the entire query and holds the result
     """
 
-    def __init__(self, config, query_name, namespaces):
+    def __init__(self, config, query_name):
         """
         Load each resource and combine the result
         """
@@ -21,18 +21,11 @@ class Query(pd.DataFrame):
         data = []
         logger.debug(f"Loading data for {query_name}")
 
-        # we can limit by namespaces if we sneak in a pseudo-table at the left
-        # that lists all the namespaces we care about, the rest of the data
-        # that is left-joined will be dropped if it doesn't match
-        if namespaces:
-            logger.debug(f"Limiting to namespace(s) {namespaces}")
-            data.append(pd.DataFrame(data={"namespace": namespaces}))
-
         # either we've provided a query and go through all tables needed,
         # or we simply want to have one table loaded
         if query_name in config.queries:
             self.query = config.queries[query_name]
-            tablenames = self.query["tables"]
+            tablenames = self.query.get("tables", [])
         else:
             self.query = config.tables[query_name]
             tablenames = [query_name]
@@ -40,6 +33,9 @@ class Query(pd.DataFrame):
         # for each kind of resource, build a table and append it to the data set
         for table in tablenames:
             data.append(Table(config.client, table, **config.tables[table]))
+
+        if query_name == 'list':
+            data = [config.available_queries()]
 
         # zip through the data set and pd.merge them all together
         try:
@@ -74,6 +70,12 @@ class Query(pd.DataFrame):
             matches = self.loc[self['namespace'].isin(namespaces)]
             drop_rows = self.index.difference(matches.index)
             self.drop(drop_rows, inplace=True)
+
+        # drop all columns configured to be 'hidden'
+        hidden = self.query.get("hidden", [])
+        if hidden:
+            self.drop(columns=hidden, inplace=True)
+            logger.debug(f"  Dropped columns {hidden}")
 
         # fill the NaN's with dashes
         self.fillna("-", inplace=True)

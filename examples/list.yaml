@@ -1,0 +1,10 @@
+---
+
+queries:
+
+  list:
+    note: List of all available tables and queries
+    sort:
+      - file
+      - kind
+      - name
