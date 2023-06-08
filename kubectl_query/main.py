@@ -52,6 +52,15 @@ CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
     default `color` that is `plain` with custom colored output
     """,
 )
+@click.option(
+    "-l",
+    "--list",
+    "list_queries",
+    count=True,
+    help="""
+    Show available tables and queries
+    """,
+)
 @click.argument("queries", nargs=-1)
 # pylint: disable=too-many-arguments
 def main(
@@ -60,6 +69,7 @@ def main(
     patterns,
     namespaces,
     tablefmt,
+    list_queries,
     queries,
 ):
     """
@@ -85,9 +95,9 @@ def main(
 
     logger.debug("  Config loaded, on to checking")
 
-    if not queries:
-        for message in config.get_available_queries():
-            print(message)
+    if list_queries:
+        config.print_available_queries()
+    elif not queries:
         main.main(["--help"])
 
     for i, query_name in enumerate(queries):
