@@ -89,27 +89,6 @@ class Config:
                 if table not in self.config['tables']:
                     logger.warning(f"Query '{query}' makes use of an unknown table '{table}'")
 
-    def available_queries(self):
-        """
-        Put together a table with all the available tables and queries
-        """
-
-        available = []
-
-        for kind, data in [('table', 'tables'), ('query', 'queries')]:
-            for name, prop in sorted(self.config.get(data, {}).items()):
-                available.append(
-                    {
-                        'file': prop.get('file', ''),
-                        'kind': kind,
-                        'name': name,
-                        'note': prop.get('note', ""),
-                        'references': ', '.join(prop.get('tables', [])) or None,
-                    }
-                )
-
-        return pd.DataFrame(available)
-
     def check_queries(self, queries):
         """
         Make sure that all requested queries are defined, otherwise show
@@ -139,3 +118,21 @@ class Config:
     def queries(self):
         """All available queries"""
         return self.config["queries"]
+
+    def as_table(self, kind):
+        """
+        Take the internal config and render it as table for help
+        """
+
+        available = []
+        for name, prop in sorted(self.config[kind].items()):
+            available.append(
+                {
+                    'name': name,
+                    'file': prop.get('file', ''),
+                    'references': ', '.join(prop.get('tables', [])) or None,
+                    'note': prop.get('note', ""),
+                }
+            )
+
+        return pd.DataFrame(available)

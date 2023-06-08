@@ -30,12 +30,14 @@ class Query(pd.DataFrame):
             self.query = config.tables[query_name]
             tablenames = [query_name]
 
-        # for each kind of resource, build a table and append it to the data set
-        for table in tablenames:
-            data.append(Table(config.client, table, **config.tables[table]))
+        # for showing the internal state
+        if query_name in ['tables', 'queries']:
+            data = [config.as_table(query_name)]
 
-        if query_name == 'list':
-            data = [config.available_queries()]
+        else:
+            # for each kind of resource, build a table and append it to the data set
+            for table in tablenames:
+                data.append(Table(config.client, table, **config.tables[table]))
 
         # zip through the data set and pd.merge them all together
         try:
@@ -70,12 +72,6 @@ class Query(pd.DataFrame):
             matches = self.loc[self['namespace'].isin(namespaces)]
             drop_rows = self.index.difference(matches.index)
             self.drop(drop_rows, inplace=True)
-
-        # drop all columns configured to be 'hidden'
-        hidden = self.query.get("hidden", [])
-        if hidden:
-            self.drop(columns=hidden, inplace=True)
-            logger.debug(f"  Dropped columns {hidden}")
 
         # fill the NaN's with dashes
         self.fillna("-", inplace=True)

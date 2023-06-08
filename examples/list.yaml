@@ -1,10 +1,17 @@
 ---
 
-queries:
+tables:
 
-  list:
-    note: List of all available tables and queries
+  tables:
+    note: List of all available tables
+    hidden:
+      - references
     sort:
       - file
-      - kind
+      - name
+
+  queries:
+    note: List of all available queries
+    sort:
+      - file
       - name
