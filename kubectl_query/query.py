@@ -56,7 +56,7 @@ class Query(pd.DataFrame):
         # and we want to keep the result as a DataFrame
         super().__init__(result)
 
-    def postprocess(self, patterns):
+    def postprocess(self, patterns, namespaces, sort_override):
         """
         Cleanup and filtering of combined result
         """
@@ -73,9 +73,22 @@ class Query(pd.DataFrame):
         self.fillna("-", inplace=True)
 
         # sort the result
-        sort_by = self.query.get("sort", [])
+        if sort_override:
+            sort_by = []
+            for s in sort_override:
+                if ',' in s:
+                    sort_by.extend(s.split(','))
+                else:
+                    sort_by.append(s)
+        else:
+            sort_by = self.query.get("sort", [])
+
         if sort_by:
-            self.sort_values(by=sort_by, inplace=True)
+            try:
+                self.sort_values(by=sort_by, inplace=True)
+            except Exception as e:
+                logger.warning(f"Could not sort by {sort_by}, error on {e}")
+                pass
 
         # if there's a pattern or patterns, look for rows matching those patterns
         # in any column
