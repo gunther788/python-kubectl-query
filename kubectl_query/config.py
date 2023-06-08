@@ -3,12 +3,14 @@ import ipaddress  # noqa: F401
 import logging
 import os
 
+import pandas as pd
 import yaml
 from colors import color
 from jsonpath_ng import parse
 from kubernetes import config as kubeconfig
 from kubernetes import dynamic
 from kubernetes.client import api_client
+from tabulate import tabulate
 
 logger = logging.getLogger('kubectl-query')
 
@@ -32,6 +34,12 @@ class Config:
 
             except yaml.YAMLError as exception:
                 logger.warning(exception)
+
+        filename = os.path.basename(configpath)
+        for table, prop in new.get('tables', {}).items():
+            prop.setdefault('file', filename)
+        for query, prop in new.get('queries', {}).items():
+            prop.setdefault('file', filename)
 
         self.config['tables'] = {**self.config['tables'], **new.get('tables', {})}
         self.config['queries'] = {**self.config['queries'], **new.get('queries', {})}
@@ -83,30 +91,48 @@ class Config:
                 if table not in self.config['tables']:
                     logger.warning(f"Query '{query}' makes use of an unknown table '{table}'")
 
-    def get_available_queries(self):
+    def print_available_queries(self):
         """
-        Put together a message with all the config data
+        Put together a table with all the available tables and queries
         """
 
-        messages = [
-            "",
-            "Query multiple cluster resources and join them together as tables",
-        ]
+        help = []
 
-        messages.extend(["", "Tables:", ""])
-        for table, prop in self.config.get("tables", {}).items():
-            messages.append(f"  {color(table, fg='yellow')}")
-            if prop.get("note"):
-                messages.append(f"    {prop['note']}")
+        for table, prop in sorted(self.config.get("tables", {}).items()):
+            help.append(
+                {
+                    'file': prop.get('file', ''),
+                    'kind': 'table',
+                    'name': color(table, 'green'),
+                    'note': prop.get('note', ""),
+                    'references': '-',
+                }
+            )
 
-        messages.extend(["", "Queries:", ""])
-        for query, prop in self.config.get("queries", {}).items():
-            messages.append(f"  {color(query, fg='yellow')}")
-            if prop.get("note"):
-                messages.append(f"    {prop['note']}")
-        messages.append("")
+        for query, prop in sorted(self.config.get("queries", {}).items()):
+            tables = ', '.join([color(t, 'green') for t in prop.get('tables', [])])
+            help.append(
+                {
+                    'file': prop.get('file', ''),
+                    'kind': 'query',
+                    'name': color(query, 'yellow'),
+                    'note': prop.get('note', ""),
+                    'references': tables,
+                }
+            )
 
-        return messages
+        result = pd.DataFrame(help)
+        result.sort_values(by=['file', 'name'], inplace=True)
+
+        print(
+            tabulate(
+                result,
+                tablefmt="plain",
+                stralign="left",
+                showindex=False,
+                headers=[h.upper() for h in result.columns],
+            )
+        )
 
     def check_queries(self, queries):
         """
