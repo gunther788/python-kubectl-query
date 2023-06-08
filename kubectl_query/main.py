@@ -39,8 +39,7 @@ CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
     "namespaces",
     multiple=True,
     help="""
-    Limit output to namespace(s), may be provided multiple times. Do note that
-    if the first table/query does not contain namespaces, the merge will fail.
+    Limit output to namespace(s), may be provided multiple times
     """,
 )
 @click.option(
@@ -50,6 +49,15 @@ CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
     help="""
     Table format to pass on to https://github.com/astanin/python-tabulate#table-format,
     default `color` that is `plain` with custom colored output
+    """,
+)
+@click.option(
+    "-s",
+    "--sort",
+    "sort_override",
+    multiple=True,
+    help="""
+    Set field(s) to sort by, may be provided multiple times
     """,
 )
 @click.option(
@@ -69,7 +77,8 @@ def main(
     patterns,
     namespaces,
     tablefmt,
-    list_queries,
+    sort_override,
+    list_available,
     queries,
 ):
     """
@@ -108,7 +117,7 @@ def main(
         result = Query(config, query_name, namespaces)
 
         # cleanup and filter
-        result.postprocess(patterns)
+        result.postprocess(patterns, namespaces, sort_override)
 
         # colorize the output
         if tablefmt == "color":

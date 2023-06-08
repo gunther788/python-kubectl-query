@@ -140,7 +140,7 @@ kubectl query ...
 make help
 ```
 
-## Standing on the Shoulder of Giants
+## Standing on the Shoulders of Giants
 
 ### Python client library for Kubernetes
 
