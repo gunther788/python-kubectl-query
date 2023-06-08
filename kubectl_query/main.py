@@ -57,7 +57,16 @@ CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
     "sort_override",
     multiple=True,
     help="""
-    Set field(s) to sort by, may be provided multiple times
+    Select field(s) to sort by, may be provided multiple times
+    """,
+)
+@click.option(
+    "-C",
+    "--columns",
+    "list_columns",
+    multiple=True,
+    help="""
+    Select the column(s) to show, may be provided multiple times
     """,
 )
 @click.option(
@@ -78,6 +87,7 @@ def main(
     namespaces,
     tablefmt,
     sort_override,
+    list_columns,
     list_available,
     queries,
 ):
@@ -117,7 +127,7 @@ def main(
         result = Query(config, query_name, namespaces)
 
         # cleanup and filter
-        result.postprocess(patterns, namespaces, sort_override)
+        result.postprocess(patterns, namespaces, sort_override, list_columns)
 
         # colorize the output
         if tablefmt == "color":

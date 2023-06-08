@@ -56,18 +56,19 @@ class Query(pd.DataFrame):
         # and we want to keep the result as a DataFrame
         super().__init__(result)
 
-    def postprocess(self, patterns, namespaces, sort_override):
+    def postprocess(self, patterns, namespaces, sort_override, list_columns):
         """
         Cleanup and filtering of combined result
         """
 
         logger.debug("Postprocessing:")
 
-        # drop all columns configured to be 'hidden'
-        hidden = self.query.get("hidden", [])
-        if hidden:
-            self.drop(columns=hidden, inplace=True)
-            logger.debug(f"  Dropped columns {hidden}")
+        # drop rows that have no namespace or the namespace isn't in the list
+        if namespaces and 'namespace' in self.columns:
+            logger.debug(f"Limiting to namespace(s) {namespaces}")
+            matches = self.loc[self['namespace'].isin(namespaces)]
+            drop_rows = self.index.difference(matches.index)
+            self.drop(drop_rows, inplace=True)
 
         # fill the NaN's with dashes
         self.fillna("-", inplace=True)
@@ -99,5 +100,27 @@ class Query(pd.DataFrame):
             drop_rows = self[~matches.values].index
             self.drop(drop_rows, inplace=True)
             logger.debug(f"  Dropped {len(drop_rows)} rows that did not match {patterns}")
+
+        # select a possible subset of columns
+        hidden = []
+        if list_columns:
+            limit_columns = []
+            for c in list_columns:
+                if ',' in c:
+                    limit_columns.extend(c.lower().split(','))
+                else:
+                    limit_columns.append(c.lower())
+
+            logger.debug(f"Limiting columns to {limit_columns}")
+
+            for c in self.columns:
+                if c not in limit_columns:
+                    hidden.append(c)
+
+        # drop all columns configured to be 'hidden'
+        hidden.extend(self.query.get("hidden", []))
+        if hidden:
+            self.drop(columns=hidden, inplace=True)
+            logger.debug(f"  Dropped columns {hidden}")
 
         return self
