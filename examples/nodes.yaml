@@ -8,4 +8,52 @@ tables:
     kind: Node
     fields:
       node: "$.metadata.name"
-      ipv4address: "$.metadata.annotations.\"projectcalico.org/IPv4Address\""
+      nodeip: "$.metadata.annotations.\"rke.cattle.io/internal-ip\""
+
+  nodes-specs:
+    note: Nodes with cpu and memory specs
+    api_version: v1
+    kind: Node
+    fields:
+      node: "$.metadata.name"
+      cpu: "$.status.capacity.cpu"
+      mem: "$.status.capacity.memory"
+      kernel: "$.status.nodeInfo.kernelVersion"
+
+  nodes-labels:
+    note: Nodes with Labels
+    api_version: v1
+    kind: Node
+    fields:
+      node: "$.metadata.name"
+      tier: "$.metadata.labels.\"swsnet.ch/tier\""
+      zone: "$.metadata.labels.\"topology.kubernetes.io/zone\""
+
+  nodes-taints:
+    note: Nodes with Taints
+    api_version: v1
+    kind: Node
+    fields:
+      node: "$.metadata.name"
+      taints: "$.spec.taints"
+
+queries:
+
+  nodes-topology:
+    aliases:
+      - nt
+    note: Nodes with extra topology data
+    tables:
+      - nodes
+      - nodes-specs
+      - nodes-labels
+      - nodes-taints
+
+  nodes-endpoints:
+    aliases:
+      - ne
+    note: Nodes with Endpoints
+    tables:
+      - nodes
+      - nodes-labels
+      - endpointslices
