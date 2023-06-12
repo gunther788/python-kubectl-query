@@ -37,7 +37,8 @@ class Query(pd.DataFrame):
         else:
             # for each kind of resource, build a table and append it to the data set
             for table in tablenames:
-                data.append(Table(config.client, table, **config.tables[table]))
+                context = config.tables[table]['context']
+                data.append(Table(config.client(context), table, **config.tables[table]))
 
         # zip through the data set and pd.merge them all together
         try:
@@ -59,7 +60,7 @@ class Query(pd.DataFrame):
         # and we want to keep the result as a DataFrame
         super().__init__(result)
 
-    def postprocess(self, patterns, namespaces, sort_override, list_columns):
+    def postprocess(self, patterns, filters, namespaces, sort_override, list_columns):
         """
         Cleanup and filtering of combined result
         """
