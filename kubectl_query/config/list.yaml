@@ -12,6 +12,8 @@ tables:
 
   queries:
     note: List of all available queries
+    hidden:
+      - context
     sort:
       - file
       - name

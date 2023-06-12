@@ -31,7 +31,19 @@ CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
     "--pattern",
     "patterns",
     multiple=True,
-    help="Limit output to rows containing TEXT, may be provided multiple times",
+    help="""
+    Limit output to rows containing TEXT, may be provided multiple times
+    """,
+)
+@click.option(
+    "-f",
+    "--filter",
+    "filters",
+    multiple=True,
+    help="""
+    With A=B, Limit output to rows with value ~ B for column A, if provided
+    multiple times, the result is further reduced
+    """,
 )
 @click.option(
     "-n",
@@ -40,6 +52,14 @@ CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
     multiple=True,
     help="""
     Limit output to namespace(s), may be provided multiple times
+    """,
+)
+@click.option(
+    "--context",
+    "set_context",
+    default=None,
+    help="""
+    Override the Kubernetes context
     """,
 )
 @click.option(
@@ -85,7 +105,9 @@ def main(
     verbose,
     configpaths,
     patterns,
+    filters,
     namespaces,
+    set_context,
     tablefmt,
     sort_override,
     list_columns,
@@ -107,6 +129,7 @@ def main(
     logger.debug("Options:")
     logger.debug(f"  Config in {configpaths}")
     logger.debug(f"  Patterns set to {patterns}")
+    logger.debug(f"  Filters set to {filters}")
     logger.debug(f"  Table format is {tablefmt}")
 
     # shortcuts for help pages
@@ -116,7 +139,7 @@ def main(
         main.main(["--help"])
 
     # load the configuration file into our internal structure
-    config = Config(configpaths)
+    config = Config(configpaths, set_context)
     queries = config.check_queries(queries)
 
     logger.debug("  Config loaded, on to checking")
@@ -129,7 +152,7 @@ def main(
         result = Query(config, query_name)
 
         # cleanup and filter
-        result.postprocess(patterns, namespaces, sort_override, list_columns)
+        result.postprocess(patterns, filters, namespaces, sort_override, list_columns)
 
         # colorize the output
         if tablefmt == "color":

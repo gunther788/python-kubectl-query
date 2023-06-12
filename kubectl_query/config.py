@@ -6,10 +6,9 @@ import os
 
 import pandas as pd
 import yaml
-from jsonpath_ng import parse
+from jsonpath_ng.ext import parse
 from kubernetes import config as kubeconfig
 from kubernetes import dynamic
-from kubernetes.client import api_client
 
 logger = logging.getLogger('kubectl-query')
 
@@ -44,17 +43,11 @@ class Config:
         self.config['tables'] = {**self.config['tables'], **new.get('tables', {})}
         self.config['queries'] = {**self.config['queries'], **new.get('queries', {})}
 
-    def __init__(self, configpaths):
+    def __init__(self, configpaths, set_context):
         """
         Parse the configuration files or directories and compile the
         JSON paths needed to select fields later on
         """
-
-        try:
-            self._client = dynamic.DynamicClient(api_client.ApiClient(configuration=kubeconfig.load_kube_config()))
-        except Exception as exc:
-            logger.warning(f"Can't load Kubernetes config: {exc}")
-            pass
 
         self.config = {'tables': {}, 'queries': {}}
 
@@ -70,11 +63,33 @@ class Config:
             else:
                 logger.warning(f"Don't know what to do with '{configpath}'")
 
-        logger.debug("Compiling configs:")
+        # let's have a look at the contexts available
+        known_contexts, default_context = kubeconfig.list_kube_config_contexts()
+        known_contexts = [context['name'] for context in known_contexts]
+        default_context = set_context or default_context['name']
+        logger.debug(f"Loaded contexts: {known_contexts}, default '{default_context}'")
+        self._client = {}
 
         # process tables
+        logger.debug("Compiling configs:")
         for table, prop in self.config.get("tables", {}).items():
-            logger.debug(f"  Loading config for table {table}")
+            context = prop.get('context', default_context)
+            logger.debug(f"  Loading config for table '{table}' with context '{context}'")
+
+            # skip if we set the context and it's not known
+            if context not in known_contexts:
+                logger.warning(f"Table '{table}' refers to unknown context '{context}', skipping...")
+                continue
+
+            # load Kubernetes client once for each context used
+            prop.setdefault('context', context)
+            if context not in self._client:
+                try:
+                    self._client[context] = dynamic.DynamicClient(kubeconfig.new_client_from_config(context=context))
+                except Exception as exc:
+                    logger.warning(f"Can't load Kubernetes config: {exc}")
+                    pass
+
             # for fields we need to compile the path
             for field, path in prop.get("fields", {}).items():
                 if isinstance(path, dict):
@@ -129,10 +144,9 @@ class Config:
         logger.error(f"{errors} are neither tables nor queries nor aliases for them")
         return []
 
-    @property
-    def client(self):
+    def client(self, context):
         """Just the API client"""
-        return self._client
+        return self._client[context]
 
     @property
     def tables(self):
@@ -156,6 +170,7 @@ class Config:
                     'name': name,
                     'aliases': ', '.join(prop.get('aliases', [])) or None,
                     'file': prop.get('file', ''),
+                    'context': prop.get('context', '-'),
                     'references': ', '.join(prop.get('tables', [])) or None,
                     'note': prop.get('note', ""),
                 }
