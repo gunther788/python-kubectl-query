@@ -3,7 +3,7 @@
 tables:
 
   pods:
-    note: Pods with references to their owner
+    note: Pods with adresses and status
     api_version: v1
     kind: Pod
     fields:

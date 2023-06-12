@@ -74,6 +74,18 @@ class Query(pd.DataFrame):
             drop_rows = self.index.difference(matches.index)
             self.drop(drop_rows, inplace=True)
 
+        if filters:
+            for k, v in [f.split('=') for f in filters]:
+                logger.debug(f"Filtering on '{k}' with pattern '.*{v}.*'")
+                matches = self[k].str.match(f".*{v}.*")
+                matches.fillna(False, inplace=True)
+
+                # invert the selection to be able to drop those that don't match
+                if any(matches.values):
+                    drop_rows = self[~matches.values].index
+                    self.drop(drop_rows, inplace=True)
+                    logger.debug(f"  Dropped {len(drop_rows)} rows that did not match {patterns}")
+
         # fill the NaN's with dashes
         self.fillna("-", inplace=True)
 
