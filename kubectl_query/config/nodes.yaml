@@ -21,13 +21,17 @@ tables:
       kernel: "$.status.nodeInfo.kernelVersion"
 
   nodes-labels:
+    aliases:
+      - nl
     note: Nodes with Labels
     api_version: v1
     kind: Node
     fields:
       node: "$.metadata.name"
-      tier: "$.metadata.labels.\"swsnet.ch/tier\""
+      region: "$.metadata.labels.\"topology.kubernetes.io/region\""
       zone: "$.metadata.labels.\"topology.kubernetes.io/zone\""
+      legacytier: "$.metadata.labels.\"swsnet.ch/tier\""
+      legacyzone: "$.metadata.labels.\"zone\""
 
   nodes-taints:
     note: Nodes with Taints
