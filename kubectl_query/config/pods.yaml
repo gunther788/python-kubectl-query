@@ -34,7 +34,28 @@ tables:
       podip: "$.status.podIPs[*].ip"
       port: "$.spec.containers[*].ports[*].containerPort"
 
+  pods-tolerations:
+    note: Pods with Tolerations
+    api_version: v1
+    kind: Pod
+    fields:
+      pod: "$.metadata.name"
+      namespace: "$.metadata.namespace"
+      tolerations:
+        tolerationzone: "$.spec.tolerations[?key='zone'].value"
+        tolerationtier: "$.spec.tolerations[?key='swsnet.ch/tier'].value"
+      topology:
+        topologykey: "$.spec.topologySpreadConstraints[?topologyKey='topology.kubernetes.io/zone'].topologyKey"
+
 queries:
+
+  pods-topology:
+    aliases:
+      - pt
+    note: Pods with various Topology-related attributes
+    tables:
+      - pods
+      - pods-tolerations
 
   pods-nodes-storage:
     note: Pods with Nodes and Storage
