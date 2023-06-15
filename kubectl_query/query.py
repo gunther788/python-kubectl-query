@@ -13,13 +13,13 @@ class Query(pd.DataFrame):
     Represents the entire query and holds the result
     """
 
-    def __init__(self, config, query_name):
+    def __init__(self, client, config, query_name):
         """
         Load each resource and combine the result
         """
 
         data = []
-        logger.debug(f"Loading data for {query_name}")
+        logger.debug(f"Loading data for '{query_name}'")
 
         # either we've provided a query and go through all tables needed,
         # or we simply want to have one table loaded
@@ -37,15 +37,7 @@ class Query(pd.DataFrame):
         else:
             # for each kind of resource, build a table and append it to the data set
             for table in tablenames:
-                context = config.tables[table]['context']
-                if isinstance(context, list):
-                    chunks = []
-                    for c in context:
-                        chunks.append(Table(config.client(c), c, table, **config.tables[table]))
-                    data.append(pd.concat(chunks))
-
-                else:
-                    data.append(Table(config.client(context), context, table, **config.tables[table]))
+                data.append(Table(client, table, **config.tables[table]))
 
         # zip through the data set and pd.merge them all together
         try:
@@ -125,7 +117,7 @@ class Query(pd.DataFrame):
             logger.debug(f"  Dropped {len(drop_rows)} rows that did not match {patterns}")
 
         # select a possible subset of columns
-        hidden = []
+        hide = []
         if list_columns:
             limit_columns = []
             for c in list_columns:
@@ -138,12 +130,12 @@ class Query(pd.DataFrame):
 
             for c in self.columns:
                 if c not in limit_columns:
-                    hidden.append(c)
+                    hide.append(c)
 
-        # drop all columns configured to be 'hidden'
-        hidden.extend(self.query.get("hidden", []))
-        if hidden:
-            self.drop(columns=hidden, inplace=True)
-            logger.debug(f"  Dropped columns {hidden}")
+        # drop all columns configured to be 'hide'
+        hide.extend(self.query.get("hide", []))
+        if hide:
+            self.drop(columns=hide, inplace=True)
+            logger.debug(f"  Dropped columns {hide}")
 
         return self
