@@ -66,9 +66,20 @@ class Config:
         # let's have a look at the contexts available
         known_contexts, default_context = kubeconfig.list_kube_config_contexts()
         known_contexts = [context['name'] for context in known_contexts]
-        default_context = set_context or default_context['name']
-        logger.debug(f"Loaded contexts: {known_contexts}, default '{default_context}'")
+        if 'all' in set_context:
+            set_context = known_contexts
+        default_context = list(set_context) or default_context['name']
+
+        # load all contexts
         self._client = {}
+        for context in known_contexts:
+            try:
+                self._client[context] = dynamic.DynamicClient(kubeconfig.new_client_from_config(context=context))
+            except Exception as exc:
+                logger.warning(f"Can't load Kubernetes config: {exc}")
+                pass
+
+        logger.debug(f"Loaded contexts: {known_contexts}, default '{default_context}'")
 
         # process tables
         logger.debug("Compiling configs:")
@@ -76,19 +87,8 @@ class Config:
             context = prop.get('context', default_context)
             logger.debug(f"  Loading config for table '{table}' with context '{context}'")
 
-            # skip if we set the context and it's not known
-            if context not in known_contexts:
-                logger.warning(f"Table '{table}' refers to unknown context '{context}', skipping...")
-                continue
-
             # load Kubernetes client once for each context used
             prop.setdefault('context', context)
-            if context not in self._client:
-                try:
-                    self._client[context] = dynamic.DynamicClient(kubeconfig.new_client_from_config(context=context))
-                except Exception as exc:
-                    logger.warning(f"Can't load Kubernetes config: {exc}")
-                    pass
 
             # for fields we need to compile the path
             for field, path in prop.get("fields", {}).items():
@@ -121,7 +121,7 @@ class Config:
         logger.debug(f"Unlias map: {unalias}")
         return unalias
 
-    def check_queries(self, iq):
+    def check_queries(self, iq, patterns):
         """
         Make sure that all requested queries are defined, otherwise show
         the user what we have
@@ -138,11 +138,19 @@ class Config:
                 oq.append(query)
 
         if all(query in available for query in oq):
-            return oq
+            return (oq, patterns)
 
         errors = list(filter(lambda query: query not in available, oq))
-        logger.error(f"{errors} are neither tables nor queries nor aliases for them")
-        return []
+
+        oq = []
+        for error in errors:
+            matches = list(filter(lambda a: error in a, available))
+            if len(matches) == 1:
+                oq.extend(matches)
+            else:
+                return (['tables', 'queries'], iq + patterns)
+
+        return (oq, patterns)
 
     def client(self, context):
         """Just the API client"""

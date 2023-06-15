@@ -3,6 +3,7 @@ import itertools
 import logging
 
 import pandas as pd
+from kubernetes.dynamic.resource import ResourceField
 
 logger = logging.getLogger('kubectl-query')
 
@@ -17,7 +18,7 @@ class Table(pd.DataFrame):
     multiple records
     """
 
-    def __init__(self, client, table, api_version, kind, fields, **kwargs):
+    def __init__(self, client, clustercontext, table, api_version, kind, fields, **kwargs):
         """
         Table is really just a fancy constructor for a DataFrame that stores
         the result of an API call in table format... the magic lies within
@@ -25,6 +26,31 @@ class Table(pd.DataFrame):
         trigger multiple rows to be created, so we can treat each data set
         independently when joining other tables
         """
+
+        def format_list(value):
+            if isinstance(value, list):
+                return ",".join(value)
+            else:
+                return str(value)
+
+        def format_match(value):
+            if value.operator == 'In':
+                return f"{value.key} = {format_list(value.values)}"
+            elif value.operator == 'NotIn':
+                return f"{value.key} != {format_list(value.values)}"
+            else:
+                return f"{value.key} {value.operator.lower()}"
+
+        def format_value(value):
+            if isinstance(value, ResourceField):
+                if value.matchExpressions:
+                    return ' & '.join([format_match(v) for v in value.matchExpressions])
+                if value.matchFields:
+                    return ' & '.join([format_match(v) for v in value.matchFields])
+                if value.effect:
+                    return f"{value.key}={value.value}:{value.effect}"
+
+            return str(value)
 
         def extract_values(field, path, entry):
             """
@@ -40,18 +66,18 @@ class Table(pd.DataFrame):
             if isinstance(path, dict):
                 subitem = {}
                 for subfield, subpath in path.items():
-                    subitem[subfield] = [match.value for match in subpath.find(entry)]
+                    subitem[subfield] = [format_value(match.value) for match in subpath.find(entry)] or ['<none>']
 
                 # dict of lists to list of dicts
                 item[field] = [dict(zip(subitem, i)) for i in zip(*subitem.values())]
 
             elif isinstance(path, list):
-                item[field] = [str(match.value) for match in path[0].find(entry)]
+                item[field] = [format_value(match.value) for match in path[0].find(entry)]
                 for f in path[1:]:
                     item[field] = [f(v) for v in item[field]]
 
             else:
-                item[field] = [str(match.value) for match in path.find(entry)] or ['<none>']
+                item[field] = [format_value(match.value) for match in path.find(entry)] or ['<none>']
 
             return item
 
@@ -66,9 +92,9 @@ class Table(pd.DataFrame):
                 for field, value in dict(zip(keys, instance)).items():
                     if isinstance(value, dict):
                         for subfield, subvalue in value.items():
-                            values[subfield] = str(subvalue)
+                            values[subfield] = subvalue
                     else:
-                        values[field] = str(value)
+                        values[field] = value
                 yield values
 
         # get all resources, all namespaces
@@ -79,7 +105,7 @@ class Table(pd.DataFrame):
 
             for entry in resource.get().items:
                 # extract fields by going through all paths requested
-                item = {}
+                item = {'context': [clustercontext]}
                 for field, path in fields.items():
                     item.update(extract_values(field, path, entry))
 

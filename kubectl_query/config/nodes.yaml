@@ -40,8 +40,8 @@ tables:
     fields:
       node: "$.metadata.name"
       taints:
-        noschedule: "$.spec.taints[?effect='NoSchedule'].key"
-        noexecute: "$.spec.taints[?effect='NoExecute'].key"
+        noschedule: "$.spec.taints[?effect='NoSchedule']"
+        noexecute: "$.spec.taints[?effect='NoExecute']"
 
 queries:
 
