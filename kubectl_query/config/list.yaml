@@ -4,7 +4,7 @@ tables:
 
   tables:
     note: List of all available tables
-    hidden:
+    hide:
       - references
     sort:
       - file
@@ -12,8 +12,8 @@ tables:
 
   queries:
     note: List of all available queries
-    hidden:
-      - context
+    hide:
+      - contexts
     sort:
       - file
       - name

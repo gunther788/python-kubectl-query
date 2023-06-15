@@ -4,6 +4,7 @@ import click
 from colors import color
 from tabulate import tabulate
 
+from .client import Client
 from .config import Config
 from .query import Query
 
@@ -49,6 +50,7 @@ CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
     "-n",
     "--namespace",
     "namespaces",
+    default=None,
     multiple=True,
     help="""
     Limit output to namespace(s), may be provided multiple times
@@ -56,7 +58,8 @@ CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
 )
 @click.option(
     "--context",
-    "set_context",
+    "--contexts",
+    "contexts",
     default=None,
     multiple=True,
     help="""
@@ -108,7 +111,7 @@ def main(
     patterns,
     filters,
     namespaces,
-    set_context,
+    contexts,
     tablefmt,
     sort_override,
     list_columns,
@@ -129,6 +132,7 @@ def main(
 
     logger.debug("Options:")
     logger.debug(f"  Config in {configpaths}")
+    logger.debug(f"  Contexts set to {contexts}")
     logger.debug(f"  Patterns set to {patterns}")
     logger.debug(f"  Filters set to {filters}")
     logger.debug(f"  Table format is {tablefmt}")
@@ -139,8 +143,12 @@ def main(
     elif not queries:
         main.main(["--help"])
 
-    # load the configuration file into our internal structure
-    config = Config(configpaths, set_context)
+    # prepare the Kubernetes client with various contexts
+    client = Client(list(contexts))
+
+    # load the configuration file into our internal structure and
+    # amend the client with new contexts if needed
+    config = Config(configpaths, client)
     (queries, patterns) = config.check_queries(queries, patterns)
 
     logger.debug("  Config loaded, on to checking")
@@ -149,8 +157,8 @@ def main(
         if i > 0:
             print()
 
-        # load all required data
-        result = Query(config, query_name)
+        # load all data
+        result = Query(client, config, query_name)
 
         # cleanup and filter
         result.postprocess(patterns, filters, namespaces, sort_override, list_columns)

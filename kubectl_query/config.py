@@ -7,8 +7,6 @@ import os
 import pandas as pd
 import yaml
 from jsonpath_ng.ext import parse
-from kubernetes import config as kubeconfig
-from kubernetes import dynamic
 
 logger = logging.getLogger('kubectl-query')
 
@@ -17,6 +15,30 @@ class Config:
     """
     Represents the config file and does sanity checking of the input
     """
+
+    def __init__(self, configpaths, client):
+        """
+        Parse the configuration files or directories and compile the
+        JSON paths needed to select fields later on
+        """
+
+        self.config = {'tables': {}, 'queries': {}}
+
+        built_in = importlib.resources.files(__package__).joinpath('config')
+        configpaths = (built_in,) + configpaths
+
+        for configpath in configpaths:
+            if os.path.isfile(configpath):
+                self.merge_config(configpath)
+            elif os.path.isdir(configpath):
+                for configfile in glob.glob(f"{configpath}/*.yaml"):
+                    self.merge_config(configfile)
+            else:
+                logger.warning(f"Don't know what to do with '{configpath}'")
+
+        logger.debug("Compiling configs:")
+        self.init_tables(client.default_contexts)
+        self.init_queries()
 
     def merge_config(self, configpath):
         """
@@ -43,52 +65,14 @@ class Config:
         self.config['tables'] = {**self.config['tables'], **new.get('tables', {})}
         self.config['queries'] = {**self.config['queries'], **new.get('queries', {})}
 
-    def __init__(self, configpaths, set_context):
+    def init_tables(self, default_contexts):
         """
-        Parse the configuration files or directories and compile the
-        JSON paths needed to select fields later on
+        Process tables
         """
 
-        self.config = {'tables': {}, 'queries': {}}
-
-        built_in = importlib.resources.files(__package__).joinpath('config')
-        configpaths = (built_in,) + configpaths
-
-        for configpath in configpaths:
-            if os.path.isfile(configpath):
-                self.merge_config(configpath)
-            elif os.path.isdir(configpath):
-                for configfile in glob.glob(f"{configpath}/*.yaml"):
-                    self.merge_config(configfile)
-            else:
-                logger.warning(f"Don't know what to do with '{configpath}'")
-
-        # let's have a look at the contexts available
-        known_contexts, default_context = kubeconfig.list_kube_config_contexts()
-        known_contexts = [context['name'] for context in known_contexts]
-        if 'all' in set_context:
-            set_context = known_contexts
-        default_context = list(set_context) or default_context['name']
-
-        # load all contexts
-        self._client = {}
-        for context in known_contexts:
-            try:
-                self._client[context] = dynamic.DynamicClient(kubeconfig.new_client_from_config(context=context))
-            except Exception as exc:
-                logger.warning(f"Can't load Kubernetes config: {exc}")
-                pass
-
-        logger.debug(f"Loaded contexts: {known_contexts}, default '{default_context}'")
-
-        # process tables
-        logger.debug("Compiling configs:")
         for table, prop in self.config.get("tables", {}).items():
-            context = prop.get('context', default_context)
-            logger.debug(f"  Loading config for table '{table}' with context '{context}'")
-
-            # load Kubernetes client once for each context used
-            prop.setdefault('context', context)
+            logger.debug(f"  Loading config for table '{table}'")
+            prop.setdefault('contexts', default_contexts)
 
             # for fields we need to compile the path
             for field, path in prop.get("fields", {}).items():
@@ -102,9 +86,13 @@ class Config:
                 elif isinstance(path, str):
                     prop["fields"][field] = parse(path)
 
-        # process and queries
+    def init_queries(self):
+        """
+        Process queries
+        """
+
         for query, prop in self.config.get("queries", {}).items():
-            logger.debug(f"  Loading config for query {query}")
+            logger.debug(f"  Loading config for query '{query}'")
             for table in prop.get("tables", []):
                 if table not in self.config['tables']:
                     logger.warning(f"Query '{query}' makes use of an unknown table '{table}'")
@@ -113,12 +101,12 @@ class Config:
         """
         Build a dict of all aliases for tables and queries
         """
+
         unalias = {}
         for name, prop in list(self.tables.items()) + list(self.queries.items()):
             for alias in prop.get('aliases', []):
                 unalias[alias] = name
 
-        logger.debug(f"Unlias map: {unalias}")
         return unalias
 
     def check_queries(self, iq, patterns):
@@ -152,10 +140,6 @@ class Config:
 
         return (oq, patterns)
 
-    def client(self, context):
-        """Just the API client"""
-        return self._client[context]
-
     @property
     def tables(self):
         """All available tables"""
@@ -178,7 +162,7 @@ class Config:
                     'name': name,
                     'aliases': ', '.join(prop.get('aliases', [])) or None,
                     'file': prop.get('file', ''),
-                    'context': prop.get('context', '-'),
+                    'contexts': ', '.join(prop.get('contexts', [])),
                     'references': ', '.join(prop.get('tables', [])) or None,
                     'note': prop.get('note', ""),
                 }

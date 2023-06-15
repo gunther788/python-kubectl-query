@@ -18,7 +18,7 @@ class Table(pd.DataFrame):
     multiple records
     """
 
-    def __init__(self, client, clustercontext, table, api_version, kind, fields, **kwargs):
+    def __init__(self, client, table, contexts, api_version, kind, fields, **kwargs):
         """
         Table is really just a fancy constructor for a DataFrame that stores
         the result of an API call in table format... the magic lies within
@@ -97,24 +97,33 @@ class Table(pd.DataFrame):
                         values[field] = value
                 yield values
 
-        # get all resources, all namespaces
+        logger.debug(f"Initializing table {table} with contexts {contexts}")
+
+        # get resources, all contexts and all namespaces
         items = []
 
-        try:
-            resource = client.resources.get(api_version=api_version, kind=kind)
+        # for each cluster, get the data and build one long table with all the data
+        for context in contexts:
+            try:
+                logger.debug(f"  Loading '{table}' from '{context}'")
+                resource = client.client(context).resources.get(api_version=api_version, kind=kind)
 
-            for entry in resource.get().items:
-                # extract fields by going through all paths requested
-                item = {'context': [clustercontext]}
-                for field, path in fields.items():
-                    item.update(extract_values(field, path, entry))
+                for entry in resource.get().items:
+                    if kwargs.get('no_context', False):
+                        item = {}
+                    else:
+                        item = {'context': [context]}
 
-                # expand the result and add to table
-                items.extend(product_dict(**item))
+                    # extract fields by going through all paths requested
+                    for field, path in fields.items():
+                        item.update(extract_values(field, path, entry))
 
-        except Exception as e:
-            logger.warning(f"Failed to get {kind}, {e}")
-            pass
+                    # expand the result and add to table
+                    items.extend(product_dict(**item))
+
+            except Exception as e:
+                logger.info(f"Failed to get '{kind}' from '{context}', {e}")
+                pass
 
         logger.debug(f"  Loaded {len(items)} {table} ({kind})")
 
