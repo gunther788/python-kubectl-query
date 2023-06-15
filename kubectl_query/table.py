@@ -18,7 +18,7 @@ class Table(pd.DataFrame):
     multiple records
     """
 
-    def __init__(self, client, table, contexts, api_version, kind, fields, **kwargs):
+    def __init__(self, client, table, api_version, kind, fields, **kwargs):
         """
         Table is really just a fancy constructor for a DataFrame that stores
         the result of an API call in table format... the magic lies within
@@ -97,10 +97,14 @@ class Table(pd.DataFrame):
                         values[field] = value
                 yield values
 
+        contexts = kwargs.get('contexts', [])
         logger.debug(f"Initializing table {table} with contexts {contexts}")
 
         # get resources, all contexts and all namespaces
         items = []
+
+        if len(contexts) == 1:
+            kwargs['no_context'] = True
 
         # for each cluster, get the data and build one long table with all the data
         for context in contexts:

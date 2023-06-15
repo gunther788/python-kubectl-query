@@ -150,6 +150,8 @@ def main(
     # amend the client with new contexts if needed
     config = Config(configpaths, client)
     (queries, patterns) = config.check_queries(queries, patterns)
+    tables = config.init_queries(queries)
+    config.init_tables(tables + queries)
 
     logger.debug("  Config loaded, on to checking")
 
