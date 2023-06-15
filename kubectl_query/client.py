@@ -52,4 +52,4 @@ class Client:
                 logger.warning(f"Can't load Kubernetes config: {exc}")
                 pass
 
-        return self._client[context]
+        return self._client.get(context, None)

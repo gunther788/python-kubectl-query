@@ -36,9 +36,9 @@ class Config:
             else:
                 logger.warning(f"Don't know what to do with '{configpath}'")
 
-        logger.debug("Compiling configs:")
-        self.init_tables(client.default_contexts)
-        self.init_queries()
+        default_contexts = client.default_contexts
+        for table, prop in self.config['tables'].items():
+            prop.setdefault('contexts', default_contexts)
 
     def merge_config(self, configpath):
         """
@@ -65,14 +65,35 @@ class Config:
         self.config['tables'] = {**self.config['tables'], **new.get('tables', {})}
         self.config['queries'] = {**self.config['queries'], **new.get('queries', {})}
 
-    def init_tables(self, default_contexts):
+    def init_queries(self, queries):
+        """
+        Process queries
+        """
+
+        tables = []
+        for query, prop in self.config.get("queries", {}).items():
+            if query not in queries:
+                continue
+
+            logger.debug(f"  Loading config for query '{query}'")
+            for table in prop.get("tables", []):
+                if table not in self.config['tables']:
+                    logger.warning(f"Query '{query}' makes use of an unknown table '{table}'")
+                elif table not in tables:
+                    tables.append(table)
+
+        return tables
+
+    def init_tables(self, tables):
         """
         Process tables
         """
 
         for table, prop in self.config.get("tables", {}).items():
+            if table not in tables:
+                continue
+
             logger.debug(f"  Loading config for table '{table}'")
-            prop.setdefault('contexts', default_contexts)
 
             # for fields we need to compile the path
             for field, path in prop.get("fields", {}).items():
@@ -85,17 +106,6 @@ class Config:
 
                 elif isinstance(path, str):
                     prop["fields"][field] = parse(path)
-
-    def init_queries(self):
-        """
-        Process queries
-        """
-
-        for query, prop in self.config.get("queries", {}).items():
-            logger.debug(f"  Loading config for query '{query}'")
-            for table in prop.get("tables", []):
-                if table not in self.config['tables']:
-                    logger.warning(f"Query '{query}' makes use of an unknown table '{table}'")
 
     def unaliases(self):
         """
