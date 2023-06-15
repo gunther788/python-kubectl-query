@@ -38,7 +38,14 @@ class Query(pd.DataFrame):
             # for each kind of resource, build a table and append it to the data set
             for table in tablenames:
                 context = config.tables[table]['context']
-                data.append(Table(config.client(context), table, **config.tables[table]))
+                if isinstance(context, list):
+                    chunks = []
+                    for c in context:
+                        chunks.append(Table(config.client(c), c, table, **config.tables[table]))
+                    data.append(pd.concat(chunks))
+
+                else:
+                    data.append(Table(config.client(context), context, table, **config.tables[table]))
 
         # zip through the data set and pd.merge them all together
         try:

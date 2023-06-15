@@ -7,8 +7,8 @@ tables:
     api_version: v1
     kind: Pod
     fields:
-      pod: "$.metadata.name"
       namespace: "$.metadata.namespace"
+      pod: "$.metadata.name"
       node: "$.spec.nodeName"
       podip: "$.status.podIPs[*].ip"
       podphase: "$.status.phase"
@@ -18,8 +18,8 @@ tables:
     api_version: v1
     kind: Pod
     fields:
-      pod: "$.metadata.name"
       namespace: "$.metadata.namespace"
+      pod: "$.metadata.name"
       node: "$.spec.nodeName"
       pvc: "$.spec.volumes[*].persistentVolumeClaim.claimName"
 
@@ -28,24 +28,29 @@ tables:
     api_version: v1
     kind: Pod
     fields:
-      pod: "$.metadata.name"
       namespace: "$.metadata.namespace"
+      pod: "$.metadata.name"
       node: "$.spec.nodeName"
       podip: "$.status.podIPs[*].ip"
       port: "$.spec.containers[*].ports[*].containerPort"
 
-  pods-tolerations:
-    note: Pods with Tolerations
+  pods-affinity-tolerations:
+    note: Pods with affinity and tolerations
     api_version: v1
     kind: Pod
     fields:
-      pod: "$.metadata.name"
       namespace: "$.metadata.namespace"
+      pod: "$.metadata.name"
       tolerations:
-        tolerationzone: "$.spec.tolerations[?key='zone'].value"
-        tolerationtier: "$.spec.tolerations[?key='swsnet.ch/tier'].value"
-      topology:
-        topologykey: "$.spec.topologySpreadConstraints[?topologyKey='topology.kubernetes.io/zone'].topologyKey"
+        oldzone: "$.spec.tolerations[?key='zone'].value"
+        swstier: "$.spec.tolerations[?key='swsnet.ch/tier'].value"
+        region: "$.metadata.labels.\"topology.kubernetes.io/region\""
+        zone: "$.metadata.labels.\"topology.kubernetes.io/zone\""
+      affinity: "$.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[*]"
+      #topology:
+      #  top-key: "$.spec.topologySpreadConstraints[?topologyKey='topology.kubernetes.io/zone'].topologyKey"
+      #  when-not: "$.spec.topologySpreadConstraints[?topologyKey='topology.kubernetes.io/zone'].whenUnsatisfiable"
+      #  maxskew: "$.spec.topologySpreadConstraints[?topologyKey='topology.kubernetes.io/zone'].maxSkew"
 
 queries:
 
@@ -55,7 +60,7 @@ queries:
     note: Pods with various Topology-related attributes
     tables:
       - pods
-      - pods-tolerations
+      - pods-affinity-tolerations
 
   pods-nodes-storage:
     note: Pods with Nodes and Storage

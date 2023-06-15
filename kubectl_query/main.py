@@ -58,8 +58,9 @@ CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
     "--context",
     "set_context",
     default=None,
+    multiple=True,
     help="""
-    Override the Kubernetes context
+    Override the Kubernetes context, may be provided multiple times, or "all"
     """,
 )
 @click.option(
@@ -140,7 +141,7 @@ def main(
 
     # load the configuration file into our internal structure
     config = Config(configpaths, set_context)
-    queries = config.check_queries(queries)
+    (queries, patterns) = config.check_queries(queries, patterns)
 
     logger.debug("  Config loaded, on to checking")
 
