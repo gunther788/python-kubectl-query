@@ -2,7 +2,7 @@
 
 tables:
 
-  nodes:
+  nodes-ips:
     note: Nodes with their IPv4 addresses
     api_version: v1
     kind: Node
@@ -43,12 +43,10 @@ tables:
 
 queries:
 
-  nodes-topology:
-    aliases:
-      - nt
-    note: Nodes with extra topology data
+  nodes:
+    note: Nodes with specs and topology data
     tables:
-      - nodes
+      - nodes-ips
       - nodes-specs
       - nodes-labels
       - nodes-taints

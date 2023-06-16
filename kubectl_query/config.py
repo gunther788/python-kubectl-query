@@ -1,3 +1,4 @@
+import ast  # noqa: F401
 import glob
 import importlib.resources
 import ipaddress  # noqa: F401
@@ -22,7 +23,7 @@ class Config:
         JSON paths needed to select fields later on
         """
 
-        self.config = {'tables': {}, 'queries': {}}
+        self.config = {'tables': {}, 'queries': {}, 'bundles': {}}
 
         built_in = importlib.resources.files(__package__).joinpath('config')
         configpaths = (built_in,) + configpaths
@@ -49,63 +50,63 @@ class Config:
         with open(configpath, "r", encoding="utf-8") as stream:
             try:
                 new = yaml.safe_load(stream)
-                if 'tables' not in new and 'queries' not in new:
-                    logger.warning(f"{configpath} contains neither tables nor queries")
+                if 'tables' not in new and 'queries' not in new and 'bundles' not in new:
+                    logger.warning(f"{configpath} contains neither tables nor queries nor bundles")
 
             except yaml.YAMLError as exception:
                 logger.warning(exception)
                 new = {}
 
         filename = os.path.basename(configpath)
-        for table, prop in new.get('tables', {}).items():
-            prop.setdefault('file', filename)
-        for query, prop in new.get('queries', {}).items():
-            prop.setdefault('file', filename)
 
-        self.config['tables'] = {**self.config['tables'], **new.get('tables', {})}
-        self.config['queries'] = {**self.config['queries'], **new.get('queries', {})}
+        for kind in ['tables', 'queries', 'bundles']:
+            for name, prop in new.get(kind, {}).items():
+                prop.setdefault('file', filename)
 
-    def init_queries(self, queries):
+            self.config[kind] = {**self.config[kind], **new.get(kind, {})}
+
+    def init_bundle(self, bundle):
         """
-        Process queries
-        """
-
-        tables = []
-        for query, prop in self.config.get("queries", {}).items():
-            if query not in queries:
-                continue
-
-            logger.debug(f"  Loading config for query '{query}'")
-            for table in prop.get("tables", []):
-                if table not in self.config['tables']:
-                    logger.warning(f"Query '{query}' makes use of an unknown table '{table}'")
-                elif table not in tables:
-                    tables.append(table)
-
-        return tables
-
-    def init_tables(self, tables):
-        """
-        Process tables
+        Load the config for a bundle with tables and queries
         """
 
-        for table, prop in self.config.get("tables", {}).items():
-            if table not in tables:
-                continue
+        logger.debug(f"  Loading config for bundle '{bundle}'")
+        prop = self.bundles.get(bundle, {})
+        for query in prop.get('queries', {}):
+            self.show.append(query)
+            self.init_query(query)
+        for table in prop.get('tables', {}):
+            self.show.append(table)
+            self.init_table(table)
 
-            logger.debug(f"  Loading config for table '{table}'")
+    def init_query(self, query):
+        """
+        Load the config for a query with its tables
+        """
 
-            # for fields we need to compile the path
-            for field, path in prop.get("fields", {}).items():
-                if isinstance(path, dict):
-                    for subfield, subpath in path.items():
-                        prop["fields"][field][subfield] = parse(subpath)
+        logger.debug(f"  Loading config for query '{query}'")
+        prop = self.queries.get(query, {})
+        for table in prop.get('tables', {}):
+            self.init_table(table)
 
-                elif isinstance(path, list):
-                    prop["fields"][field] = [parse(path[0])] + [eval(f) for f in path[1:]]
+    def init_table(self, table):
+        """
+        Load the config for a table
+        """
 
-                elif isinstance(path, str):
-                    prop["fields"][field] = parse(path)
+        logger.debug(f"  Loading config for table '{table}'")
+        prop = self.tables.get(table, {})
+        # for fields we need to compile the path
+        for field, path in prop.get("fields", {}).items():
+            if isinstance(path, dict):
+                for subfield, subpath in path.items():
+                    prop["fields"][field][subfield] = parse(subpath)
+
+            elif isinstance(path, list):
+                prop["fields"][field] = [parse(path[0])] + [eval(f) for f in path[1:]]
+
+            elif isinstance(path, str):
+                prop["fields"][field] = parse(path)
 
     def unaliases(self):
         """
@@ -113,42 +114,42 @@ class Config:
         """
 
         unalias = {}
-        for name, prop in list(self.tables.items()) + list(self.queries.items()):
+        for name, prop in list(self.bundles.items()) + list(self.queries.items()) + list(self.tables.items()):
             for alias in prop.get('aliases', []):
                 unalias[alias] = name
 
         return unalias
 
-    def check_queries(self, iq, patterns):
+    def init_config(self, args=[], patterns=[]):
         """
-        Make sure that all requested queries are defined, otherwise show
-        the user what we have
+        Use a bit of heuristic to guess what the user asked for; args
+        are taken to be bundles, queries, or tables, and patterns
+        are taken at face value. If an arg is not found but there are
+        other args already in the queue, then take an arg as another pattern
         """
 
-        available = list(self.queries.keys()) + list(self.tables.keys())
+        self.show = []
+        self.patterns = patterns
         unalias = self.unaliases()
 
-        oq = []
-        for query in iq:
-            if query in unalias:
-                oq.append(unalias[query])
+        for arg in args:
+            arg = unalias.get(arg, arg)
+            if arg in self.bundles.keys():
+                self.init_bundle(arg)
+            elif arg in self.queries.keys():
+                self.show.append(arg)
+                self.init_query(arg)
+            elif arg in self.tables.keys():
+                self.show.append(arg)
+                self.init_table(arg)
             else:
-                oq.append(query)
+                self.patterns.insert(0, arg)
 
-        if all(query in available for query in oq):
-            return (oq, patterns)
+            logger.debug(f"  Init config loop: arg {arg} in args {args} patterns {self.patterns}")
 
-        errors = list(filter(lambda query: query not in available, oq))
-
-        oq = []
-        for error in errors:
-            matches = list(filter(lambda a: error in a, available))
-            if len(matches) == 1:
-                oq.extend(matches)
-            else:
-                return (['tables', 'queries'], iq + patterns)
-
-        return (oq, patterns)
+        if not self.show:
+            logger.debug("Nothing to show, so loading 'list' instead")
+            self.init_bundle('list')
 
     @property
     def tables(self):
@@ -159,6 +160,11 @@ class Config:
     def queries(self):
         """All available queries"""
         return self.config["queries"] or {}
+
+    @property
+    def bundles(self):
+        """All available bundles"""
+        return self.config["bundles"] or {}
 
     def as_table(self, kind):
         """

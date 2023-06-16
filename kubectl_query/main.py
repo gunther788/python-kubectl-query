@@ -100,10 +100,10 @@ CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
     "list_available",
     count=True,
     help="""
-    Show available tables and queries
+    Show available tables, queries and bundles
     """,
 )
-@click.argument("queries", nargs=-1)
+@click.argument("args", nargs=-1)
 # pylint: disable=too-many-arguments
 def main(
     verbose,
@@ -116,7 +116,7 @@ def main(
     sort_override,
     list_columns,
     list_available,
-    queries,
+    args,
 ):
     """
     Query the required resources and save the results into DataFrames,
@@ -130,6 +130,7 @@ def main(
     elif verbose >= 1:
         logger.setLevel(logging.INFO)
 
+    patterns = list(patterns)
     logger.debug("Options:")
     logger.debug(f"  Config in {configpaths}")
     logger.debug(f"  Contexts set to {contexts}")
@@ -138,9 +139,9 @@ def main(
     logger.debug(f"  Table format is {tablefmt}")
 
     # shortcuts for help pages
-    if list_available or 'list' in queries:
-        queries = ['tables', 'queries']
-    elif not queries:
+    if list_available:
+        args = ['list']
+    elif not args:
         main.main(["--help"])
 
     # prepare the Kubernetes client with various contexts
@@ -149,21 +150,16 @@ def main(
     # load the configuration file into our internal structure and
     # amend the client with new contexts if needed
     config = Config(configpaths, client)
-    (queries, patterns) = config.check_queries(queries, patterns)
-    tables = config.init_queries(queries)
-    config.init_tables(tables + queries)
 
-    logger.debug("  Config loaded, on to checking")
+    # initialize and process the config data according to what we want to query
+    config.init_config(args, patterns)
 
-    for i, query_name in enumerate(queries):
-        if i > 0:
-            print()
+    output = []
 
-        # load all data
-        result = Query(client, config, query_name)
-
-        # cleanup and filter
-        result.postprocess(patterns, filters, namespaces, sort_override, list_columns)
+    def render(result, tablefmt):
+        """
+        Turn dataframe into a table, by default colorized
+        """
 
         # colorize the output
         if tablefmt == "color":
@@ -172,15 +168,26 @@ def main(
                 # pylint: disable=cell-var-from-loop
                 result[column] = result[column].map(lambda x: color(x, columncolor))
 
-        print(
-            tabulate(
-                result,
-                tablefmt=tablefmt.replace("color", "plain"),
-                stralign="left",
-                showindex=False,
-                headers=[h.upper() for h in result.columns],
-            )
+        return tabulate(
+            result,
+            tablefmt=tablefmt.replace("color", "plain"),
+            stralign="left",
+            showindex=False,
+            headers=[h.upper() for h in result.columns],
         )
+
+    for arg in config.show:
+        # load all data
+        result = Query(client, config, arg)
+        result.postprocess(patterns, filters, namespaces, sort_override, list_columns)
+        if not len(result.index):
+            continue
+        output.append(render(result, tablefmt))
+
+    if output:
+        print("\n\n".join(output))
+    else:
+        logger.warning(f"Could not find any data for {config.show} with patterns {patterns}")
 
 
 if __name__ == '__main__':
