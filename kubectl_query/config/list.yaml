@@ -17,3 +17,21 @@ tables:
     sort:
       - file
       - name
+
+  bundles:
+    note: List of bundles of queries and tables
+    hide:
+      - contexts
+    sort:
+      - file
+      - name
+
+
+bundles:
+
+  list:
+    note: List all available metadata
+    tables:
+      - tables
+      - queries
+      - bundles

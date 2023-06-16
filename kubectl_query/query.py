@@ -26,14 +26,13 @@ class Query(pd.DataFrame):
         if query_name in config.queries:
             self.query = config.queries[query_name]
             tablenames = self.query.get("tables", [])
-        else:
+        elif query_name in config.tables:
             self.query = config.tables[query_name]
             tablenames = [query_name]
 
         # for showing the internal state
-        if query_name in ['tables', 'queries']:
+        if query_name in ['tables', 'queries', 'bundles']:
             data = [config.as_table(query_name)]
-
         else:
             # for each kind of resource, build a table and append it to the data set
             for table in tablenames:
