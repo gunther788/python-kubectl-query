@@ -42,15 +42,13 @@ tables:
       namespace: "$.metadata.namespace"
       pod: "$.metadata.name"
       tolerations:
-        oldzone: "$.spec.tolerations[?key='zone'].value"
-        swstier: "$.spec.tolerations[?key='swsnet.ch/tier'].value"
-        region: "$.metadata.labels.\"topology.kubernetes.io/region\""
         zone: "$.metadata.labels.\"topology.kubernetes.io/zone\""
+        oldzone: "$.spec.tolerations[?key='zone'].value"
       affinity: "$.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[*]"
-      #topology:
-      #  top-key: "$.spec.topologySpreadConstraints[?topologyKey='topology.kubernetes.io/zone'].topologyKey"
-      #  when-not: "$.spec.topologySpreadConstraints[?topologyKey='topology.kubernetes.io/zone'].whenUnsatisfiable"
-      #  maxskew: "$.spec.topologySpreadConstraints[?topologyKey='topology.kubernetes.io/zone'].maxSkew"
+      topology:
+        top-key: "$.spec.topologySpreadConstraints[?topologyKey='topology.kubernetes.io/zone'].topologyKey"
+        when-not: "$.spec.topologySpreadConstraints[?topologyKey='topology.kubernetes.io/zone'].whenUnsatisfiable"
+        maxskew: "$.spec.topologySpreadConstraints[?topologyKey='topology.kubernetes.io/zone'].maxSkew"
 
 queries:
 
@@ -66,7 +64,6 @@ queries:
     note: Pods with Nodes and Storage
     sort:
       - zone
-      - tier
       - namespace
       - pod
     tables:

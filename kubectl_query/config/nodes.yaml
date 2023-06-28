@@ -30,8 +30,6 @@ tables:
       node: "$.metadata.name"
       region: "$.metadata.labels.\"topology.kubernetes.io/region\""
       zone: "$.metadata.labels.\"topology.kubernetes.io/zone\""
-      legacytier: "$.metadata.labels.\"swsnet.ch/tier\""
-      legacyzone: "$.metadata.labels.\"zone\""
 
   nodes-taints:
     note: Nodes with Taints
