@@ -18,7 +18,7 @@ class Table(pd.DataFrame):
     multiple records
     """
 
-    def __init__(self, client, table, api_version, kind, fields, **kwargs):
+    def __init__(self, client, table, api, kind, fields, **kwargs):
         """
         Table is really just a fancy constructor for a DataFrame that stores
         the result of an API call in table format... the magic lies within
@@ -110,7 +110,7 @@ class Table(pd.DataFrame):
         for context in contexts:
             try:
                 logger.debug(f"  Loading '{table}' from '{context}'")
-                resource = client.client(context).resources.get(api_version=api_version, kind=kind)
+                resource = client.client(context).resources.get(api_version=api, kind=kind)
 
                 for entry in resource.get().items:
                     if kwargs.get('no_context', False):

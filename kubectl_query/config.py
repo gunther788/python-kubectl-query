@@ -4,6 +4,7 @@ import importlib.resources
 import ipaddress  # noqa: F401
 import logging
 import os
+import sys
 
 import pandas as pd
 import yaml
@@ -14,7 +15,7 @@ logger = logging.getLogger('kubectl-query')
 
 class Config:
     """
-    Represents the config file and does sanity checking of the input
+    Represents the config files and does sanity checking of the input
     """
 
     def __init__(self, configpaths, client):
@@ -41,6 +42,8 @@ class Config:
         for table, prop in self.config['tables'].items():
             prop.setdefault('contexts', default_contexts)
 
+        self.build_aliases()
+
     def merge_config(self, configpath):
         """
         Snarf in one more yaml file and return the dict, skip
@@ -59,7 +62,7 @@ class Config:
 
         filename = os.path.basename(configpath)
 
-        for kind in ['tables', 'queries', 'bundles']:
+        for kind in ['bundles', 'queries', 'tables']:
             for name, prop in new.get(kind, {}).items():
                 prop.setdefault('file', filename)
 
@@ -96,6 +99,11 @@ class Config:
 
         logger.debug(f"  Loading config for table '{table}'")
         prop = self.tables.get(table, {})
+
+        if not prop:
+            logger.error(f"Can't find table '{table}'")
+            sys.exit(1)
+
         # for fields we need to compile the path
         for field, path in prop.get("fields", {}).items():
             if isinstance(path, dict):
@@ -108,17 +116,39 @@ class Config:
             elif isinstance(path, str):
                 prop["fields"][field] = parse(path)
 
-    def unaliases(self):
+    def build_aliases(self):
         """
-        Build a dict of all aliases for tables and queries
+        Amend the config data with generated aliases and a reverse map
         """
 
-        unalias = {}
-        for name, prop in list(self.bundles.items()) + list(self.queries.items()) + list(self.tables.items()):
-            for alias in prop.get('aliases', []):
-                unalias[alias] = name
+        # aliases point at a list of aliases for named bundles, queries, or tables
+        self.aliases = dict()
 
-        return unalias
+        # unaliases are a reverse mapping of the above
+        self.unaliases = dict()
+
+        # a simple method to go for initial characters of a name
+        def shorten(name):
+            if '-' in name:
+                return ''.join([shorten(s) for s in name.split('-')])
+            return name[:2]
+
+        # load the predefined aliases first
+        for kind in ['bundles', 'queries', 'tables']:
+            for name, prop in getattr(self, kind).items():
+                for alias in prop.get('aliases', []):
+                    self.aliases.setdefault(name, []).append(alias)
+                    self.unaliases[alias] = name
+
+        # for the rest of the entities, give aliases as first come, first served
+        for kind in ['bundles', 'queries', 'tables']:
+            for name, prop in getattr(self, kind).items():
+                if not prop.get('aliases', []):
+                    alias = shorten(name)
+                    if alias not in self.unaliases:
+                        self.aliases.setdefault(name, []).append(alias)
+                        self.unaliases[alias] = name
+                        prop['aliases'] = [alias]
 
     def init_config(self, args=[], patterns=[]):
         """
@@ -130,10 +160,9 @@ class Config:
 
         self.show = []
         self.patterns = patterns
-        unalias = self.unaliases()
 
         for arg in args:
-            arg = unalias.get(arg, arg)
+            arg = self.unaliases.get(arg, arg)
             if arg in self.bundles.keys():
                 self.init_bundle(arg)
             elif arg in self.queries.keys():

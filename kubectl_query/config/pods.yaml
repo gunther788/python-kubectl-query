@@ -2,9 +2,9 @@
 
 tables:
 
-  pods:
+  pods-addresses:
     note: Pods with adresses and status
-    api_version: v1
+    api: v1
     kind: Pod
     fields:
       namespace: "$.metadata.namespace"
@@ -15,7 +15,7 @@ tables:
 
   pods-pvcs:
     note: Pods with PVCs
-    api_version: v1
+    api: v1
     kind: Pod
     fields:
       namespace: "$.metadata.namespace"
@@ -25,7 +25,7 @@ tables:
 
   pods-ports:
     note: Pods with Node and containerPort
-    api_version: v1
+    api: v1
     kind: Pod
     fields:
       namespace: "$.metadata.namespace"
@@ -36,7 +36,9 @@ tables:
 
   pods-affinity-tolerations:
     note: Pods with affinity and tolerations
-    api_version: v1
+    aliases:
+      - pat
+    api: v1
     kind: Pod
     fields:
       namespace: "$.metadata.namespace"
@@ -45,10 +47,6 @@ tables:
         zone: "$.metadata.labels.\"topology.kubernetes.io/zone\""
         oldzone: "$.spec.tolerations[?key='zone'].value"
       affinity: "$.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[*]"
-      topology:
-        top-key: "$.spec.topologySpreadConstraints[?topologyKey='topology.kubernetes.io/zone'].topologyKey"
-        when-not: "$.spec.topologySpreadConstraints[?topologyKey='topology.kubernetes.io/zone'].whenUnsatisfiable"
-        maxskew: "$.spec.topologySpreadConstraints[?topologyKey='topology.kubernetes.io/zone'].maxSkew"
 
 queries:
 
@@ -56,19 +54,25 @@ queries:
     aliases:
       - pt
     note: Pods with various Topology-related attributes
-    tables:
-      - pods
-      - pods-affinity-tolerations
-
-  pods-nodes-storage:
-    note: Pods with Nodes and Storage
     sort:
       - zone
       - namespace
       - pod
     tables:
-      - pods
-      - nodes
+      - pods-addresses
+      - pods-affinity-tolerations
+
+  pods-nodes-storage:
+    note: Pods with Nodes and Storage
+    aliases:
+      - pns
+    sort:
+      - zone
+      - namespace
+      - pod
+    tables:
+      - pods-addresses
+      - nodes-ips
       - nodes-labels
       - pods-pvcs
       - pvcs

@@ -4,7 +4,9 @@ tables:
 
   pvcs:
     note: PersistentVolumeClaims with Volumes
-    api_version: v1
+    aliases:
+      - pvc
+    api: v1
     kind: PersistentVolumeClaim
     fields:
       pvc: "$.metadata.name"
@@ -13,7 +15,9 @@ tables:
 
   pvs:
     note: PersistentVolumes with StorageClass
-    api_version: v1
+    aliases:
+      - pv
+    api: v1
     kind: PersistentVolume
     fields:
       volume: "$.metadata.name"
@@ -23,7 +27,9 @@ tables:
 
   longhornvolumes:
     note: Longhorn Volumes with size and health
-    api_version: longhorn.io/v1beta2
+    aliases:
+      - lv
+    api: longhorn.io/v1beta2
     kind: Volume
     fields:
       volume: "$.metadata.name"
@@ -34,7 +40,9 @@ tables:
 
   storageclasses:
     note: StorageClasses with parameters
-    api_version: v1
+    aliases:
+      - sc
+    api: v1
     kind: StorageClass
     fields:
       storageclass: "$.metadata.name"
