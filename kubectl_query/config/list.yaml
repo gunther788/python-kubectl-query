@@ -4,6 +4,9 @@ tables:
 
   tables:
     note: List of all available tables
+    aliases:
+      - t
+      - ta
     hide:
       - references
     sort:
@@ -12,6 +15,9 @@ tables:
 
   queries:
     note: List of all available queries
+    aliases:
+      - q
+      - qu
     hide:
       - contexts
     sort:
@@ -20,6 +26,9 @@ tables:
 
   bundles:
     note: List of bundles of queries and tables
+    aliases:
+      - b
+      - bu
     hide:
       - contexts
     sort:
@@ -31,6 +40,9 @@ bundles:
 
   list:
     note: List all available metadata
+    aliases:
+      - l
+      - ls
     tables:
       - tables
       - queries

@@ -74,6 +74,7 @@ class Query(pd.DataFrame):
 
         if filters:
             for k, v in [f.split('=') for f in filters]:
+                k = k.lower()
                 logger.debug(f"Filtering on '{k}' with pattern '.*{v}.*'")
                 matches = self[k].str.match(f".*{v}.*")
                 matches.fillna(False, inplace=True)

@@ -2,9 +2,11 @@
 
 tables:
 
-  endpointslices:
+  endpointslices-ip-ports:
     note: EndpointSlices with clusterIPs and ports
-    api_version: v1
+    aliases:
+      - eip
+    api: v1
     kind: EndpointSlice
     fields:
       endpoint: "$.metadata.name"
@@ -20,7 +22,9 @@ tables:
 queries:
 
   endpoints-pods-nodes:
+    aliases:
+      - epn
     note: Details of clusterIPs on various nodes
     tables:
-      - endpointslices
+      - endpointslices-ip-ports
       - pods-ports

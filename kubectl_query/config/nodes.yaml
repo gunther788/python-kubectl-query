@@ -4,7 +4,7 @@ tables:
 
   nodes-ips:
     note: Nodes with their IPv4 addresses
-    api_version: v1
+    api: v1
     kind: Node
     fields:
       node: "$.metadata.name"
@@ -12,7 +12,7 @@ tables:
 
   nodes-specs:
     note: Nodes with cpu and memory specs
-    api_version: v1
+    api: v1
     kind: Node
     fields:
       node: "$.metadata.name"
@@ -21,10 +21,8 @@ tables:
       kernel: "$.status.nodeInfo.kernelVersion"
 
   nodes-labels:
-    aliases:
-      - nl
     note: Nodes with Labels
-    api_version: v1
+    api: v1
     kind: Node
     fields:
       node: "$.metadata.name"
@@ -33,7 +31,7 @@ tables:
 
   nodes-taints:
     note: Nodes with Taints
-    api_version: v1
+    api: v1
     kind: Node
     fields:
       node: "$.metadata.name"
