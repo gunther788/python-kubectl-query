@@ -74,6 +74,18 @@ queries:
       - pods-addresses
       - pods-affinity-tolerations
 
+  pods-nodes-images:
+    note: Pods with Nodes and Images
+    aliases:
+      - pni
+    sort:
+      - node
+      - namespace
+      - pod
+    tables:
+      - nodes-specs
+      - pods-images
+
   pods-nodes-storage:
     note: Pods with Nodes and Storage
     aliases:
