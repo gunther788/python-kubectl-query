@@ -13,6 +13,18 @@ tables:
       podip: "$.status.podIPs[*].ip"
       podphase: "$.status.phase"
 
+  pods-images:
+    note: Pods and their Containers
+    api: v1
+    kind: Pod
+    fields:
+      namespace: "$.metadata.namespace"
+      pod: "$.metadata.name"
+      node: "$.spec.nodeName"
+      containers:
+        container: "$.spec.containers[*].name"
+        image: "$.spec.containers[*].image"
+
   pods-pvcs:
     note: Pods with PVCs
     api: v1

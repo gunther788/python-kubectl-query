@@ -1,0 +1,20 @@
+---
+
+tables:
+
+  events-pods:
+    note: Events for Pods
+    api: v1
+    kind: Event
+    fields:
+      #type: "$.type"
+      reason: "$.reason"
+      namespace: "$.metadata.namespace"
+      #event: "$.metadata.name"
+      first: "$.firstTimestamp"
+      #last: "$.lastTimestamp"
+      count: "$.count"
+      involvedobject:
+        kind: "$.involvedObject.kind"
+        object: "$.involvedObject.name"
+      message: "$.message"
