@@ -9,6 +9,7 @@ tables:
     fields:
       node: "$.metadata.name"
       nodeip: "$.status.addresses[?type='InternalIP'].address"
+      podcidr: "$.spec.podCIDR"
 
   nodes-specs:
     note: Nodes with cpu and memory specs
