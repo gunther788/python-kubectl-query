@@ -9,6 +9,7 @@ REQUIREMENTS = [
     "ansicolors",
     "jsonpath_ng",
     "pandas",
+    "numpy",
     "tabulate",
 ]
 

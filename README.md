@@ -161,13 +161,14 @@ by [https://github.com/hidetatz/kubecolor](https://github.com/hidetatz/kubecolor
 [https://github.com/h2non/jsonpath-ng](https://github.com/h2non/jsonpath-ng) is used to parse the json data provided
 by the Kubernetes API and select the fields of interest.
 
-### Pandas
+### Pandas & Numpy
 
-[https://github.com/pandas-dev/pandas](https://github.com/pandas-dev/pandas) provides an insane amount of functionality,
-but for this project it does two things really well:
+[https://github.com/pandas-dev/pandas](https://github.com/pandas-dev/pandas) and [https://numpy.org/](https://numpy.org/)
+provide an insane amount of functionality, but for this project it does things really well:
 
 * hold tabular data in DataFrames
 * join DataFrames of different sources together by simply matching common columns
+* provide filtering
 
 ### Tabulate
 
