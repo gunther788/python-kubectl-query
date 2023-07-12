@@ -56,7 +56,7 @@ tables:
       namespace: "$.metadata.namespace"
       pod: "$.metadata.name"
       tolerations:
-        zone: "$.metadata.labels.\"topology.kubernetes.io/zone\""
+        zone: "$.spec.tolerations[?key='topology.kubernetes.io/zone'].value"
         oldzone: "$.spec.tolerations[?key='zone'].value"
       affinity: "$.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[*]"
 

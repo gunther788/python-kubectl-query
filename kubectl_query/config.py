@@ -97,12 +97,18 @@ class Config:
         Load the config for a table
         """
 
+        parsed = self.tables.get(table, {}).get('parsed', False)
+        if parsed:
+            return
+
         logger.debug(f"  Loading config for table '{table}'")
         prop = self.tables.get(table, {})
 
         if not prop:
             logger.error(f"Can't find table '{table}'")
             sys.exit(1)
+
+        prop['parsed'] = True
 
         # for fields we need to compile the path
         for field, path in prop.get("fields", {}).items():
@@ -111,7 +117,7 @@ class Config:
                     prop["fields"][field][subfield] = parse(subpath)
 
             elif isinstance(path, list):
-                prop["fields"][field] = [parse(path[0])] + [eval(f) for f in path[1:]]
+                prop["fields"][field] = [parse(path[0])] + ['unroll' if f == 'unroll' else eval(f) for f in path[1:]]
 
             elif isinstance(path, str):
                 prop["fields"][field] = parse(path)

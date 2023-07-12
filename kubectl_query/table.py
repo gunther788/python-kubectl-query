@@ -52,6 +52,11 @@ class Table(pd.DataFrame):
 
             return str(value)
 
+        def unroll(value):
+            if isinstance(value, list) and len(value) == 1 and isinstance(value[0], list):
+                return value[0]
+            return value
+
         def extract_values(field, path, entry):
             """
             Fields can be defined as json paths, or json paths to be
@@ -73,8 +78,13 @@ class Table(pd.DataFrame):
 
             elif isinstance(path, list):
                 item[field] = [format_value(match.value) for match in path[0].find(entry)]
+                logger.debug(f"{path}")
                 for f in path[1:]:
-                    item[field] = [f(v) for v in item[field]]
+                    if f != 'unroll':
+                        item[field] = [f(v) for v in item[field]]
+
+                if 'unroll' in path:
+                    item[field] = unroll(item[field])
 
             else:
                 item[field] = [format_value(match.value) for match in path.find(entry)] or ['<none>']
