@@ -95,6 +95,15 @@ CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
     """,
 )
 @click.option(
+    "-H",
+    "--hide",
+    "hide_columns",
+    multiple=True,
+    help="""
+    Select the column(s) to hide, may be provided multiple times
+    """,
+)
+@click.option(
     "-l",
     "--list",
     "list_available",
@@ -114,6 +123,7 @@ def main(
     contexts,
     tablefmt,
     sort_override,
+    hide_columns,
     list_columns,
     list_available,
     args,
@@ -179,7 +189,7 @@ def main(
     for arg in config.show:
         # load all data
         result = Query(client, config, arg)
-        result.postprocess(patterns, filters, namespaces, sort_override, list_columns)
+        result.postprocess(patterns, filters, namespaces, sort_override, hide_columns, list_columns)
         if not len(result.index):
             continue
         output.append(render(result, tablefmt))

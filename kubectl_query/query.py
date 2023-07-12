@@ -58,7 +58,7 @@ class Query(pd.DataFrame):
         # and we want to keep the result as a DataFrame
         super().__init__(result)
 
-    def postprocess(self, patterns, filters, namespaces, sort_override, list_columns):
+    def postprocess(self, patterns, filters, namespaces, sort_override, hide_columns, list_columns):
         """
         Cleanup and filtering of combined result
         """
@@ -118,6 +118,13 @@ class Query(pd.DataFrame):
 
         # select a possible subset of columns
         hide = []
+        if hide_columns:
+            for c in hide_columns:
+                if ',' in c:
+                    hide.extend(c.lower().split(','))
+                else:
+                    hide.append(c.lower())
+
         if list_columns:
             limit_columns = []
             for c in list_columns:
