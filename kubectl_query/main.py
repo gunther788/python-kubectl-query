@@ -189,7 +189,14 @@ def main(
     for arg in config.show:
         # load all data
         result = Query(client, config, arg)
-        result.postprocess(patterns, filters, namespaces, sort_override, hide_columns, list_columns)
+        result.postprocess(
+            patterns,
+            filters or config.filters,
+            namespaces or config.namespaces,
+            sort_override,
+            hide_columns,
+            list_columns,
+        )
         if not len(result.index):
             continue
         output.append(render(result, tablefmt))

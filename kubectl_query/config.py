@@ -42,6 +42,9 @@ class Config:
         for table, prop in self.config['tables'].items():
             prop.setdefault('contexts', default_contexts)
 
+        self.namespaces = []
+        self.filters = []
+
         self.build_aliases()
 
     def merge_config(self, configpath):
@@ -89,6 +92,15 @@ class Config:
 
         logger.debug(f"  Loading config for query '{query}'")
         prop = self.queries.get(query, {})
+
+        # append pre-defined parameters to the global list
+        if 'namespaces' in prop:
+            self.namespaces.extend(prop['namespaces'])
+        if 'filters' in prop:
+            self.filters.extend(prop['filters'])
+        if 'patterns' in prop:
+            self.filters.extend(prop['filters'])
+
         for table in prop.get('tables', {}):
             self.init_table(table)
 
@@ -109,6 +121,14 @@ class Config:
             sys.exit(1)
 
         prop['parsed'] = True
+
+        # append pre-defined parameters to the global list
+        if 'namespaces' in prop:
+            self.namespaces.extend(prop['namespaces'])
+        if 'filters' in prop:
+            self.filters.extend(prop['filters'])
+        if 'patterns' in prop:
+            self.filters.extend(prop['filters'])
 
         # for fields we need to compile the path
         for field, path in prop.get("fields", {}).items():

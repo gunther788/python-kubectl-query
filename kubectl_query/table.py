@@ -78,7 +78,6 @@ class Table(pd.DataFrame):
 
             elif isinstance(path, list):
                 item[field] = [format_value(match.value) for match in path[0].find(entry)]
-                logger.debug(f"{path}")
                 for f in path[1:]:
                     if f != 'unroll':
                         item[field] = [f(v) for v in item[field]]
