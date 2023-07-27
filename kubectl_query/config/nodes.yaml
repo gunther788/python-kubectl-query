@@ -17,8 +17,11 @@ tables:
     kind: Node
     fields:
       node: "$.metadata.name"
+      kubelet: "$.status.nodeInfo.kubeletVersion"
       cpu: "$.status.capacity.cpu"
-      mem: "$.status.capacity.memory"
+      mem:
+        - "$.status.capacity.memory"
+        - "lambda x: round(int(x.replace('Ki', '')) / 1024 / 1024, 1)"
       kernel: "$.status.nodeInfo.kernelVersion"
 
   nodes-labels:
