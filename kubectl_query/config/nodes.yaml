@@ -23,9 +23,10 @@ tables:
         - "$.status.capacity.memory"
         - "lambda x: round(int(x.replace('Ki', '')) / 1024 / 1024, 1)"
       kernel: "$.status.nodeInfo.kernelVersion"
+      runtime: "$.status.nodeInfo.containerRuntimeVersion"
 
-  nodes-labels:
-    note: Nodes with Labels
+  nodes-topology-labels:
+    note: Nodes with Topology Labels
     api: v1
     kind: Node
     fields:
@@ -50,5 +51,5 @@ queries:
     tables:
       - nodes-ips
       - nodes-specs
-      - nodes-labels
+      - nodes-topology-labels
       - nodes-taints

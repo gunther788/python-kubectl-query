@@ -1,0 +1,24 @@
+---
+
+tables:
+
+  traefik-ingressroutes:
+    note: Traefik IngressRoutes
+    api: traefik.io/v1alpha1
+    kind: IngressRoute
+    fields:
+      namespace: "$.metadata.namespace"
+      ingressroute: "$.metadata.name"
+      routes:
+        match: "$.spec.routes[*].match"
+        service: "$.spec.routes[*].services[*].name"
+        port: "$.spec.routes[*].services[*].port"
+
+queries:
+
+  traefik:
+    note: Traefik Ingresses
+    tables:
+      - traefik-ingressroutes
+      - endpointslices-ip-ports
+      - pods-ports

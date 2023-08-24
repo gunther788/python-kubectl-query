@@ -97,7 +97,7 @@ queries:
     tables:
       - pods-addresses
       - nodes-ips
-      - nodes-labels
+      - nodes-topology-labels
       - pods-pvcs
       - pvcs
       - pvs
