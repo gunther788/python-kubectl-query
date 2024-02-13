@@ -2,6 +2,27 @@
 
 tables:
 
+  pods-metrics:
+    note: Pods with Metrics
+    api: metrics.k8s.io/v1beta1
+    kind: PodMetrics
+    fields:
+      namespace: "$.metadata.namespace"
+      pod: "$.metadata.name"
+      containers:
+        container: "$.containers[*].name"
+        usagecpu: "$.containers[*].usage.cpu.`sub(/([0-9]+)[0-9]{6}n/, \\\\1)`"
+        usagemem: "$.containers[*].usage.memory.`sub(/([0-9]+){3}Ki/, \\\\1)`"
+
+  pods-nodes:
+    note: Pods with nodes
+    api: v1
+    kind: Pod
+    fields:
+      namespace: "$.metadata.namespace"
+      pod: "$.metadata.name"
+      node: "$.spec.nodeName"
+
   pods-addresses:
     note: Pods with adresses and status
     api: v1
@@ -57,7 +78,6 @@ tables:
       pod: "$.metadata.name"
       tolerations:
         zone: "$.spec.tolerations[?key='topology.kubernetes.io/zone'].value"
-        oldzone: "$.spec.tolerations[?key='zone'].value"
       affinity: "$.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[*]"
 
 queries:
@@ -85,6 +105,22 @@ queries:
     tables:
       - nodes-specs
       - pods-images
+
+  pods-nodes-metrics:
+    note: Pods with Nodes and Metrics
+    aliases:
+      - pnm
+    hide:
+      - kubelet
+      - kernel
+      - runtime
+    sort:
+      - usagecpu
+    tables:
+      - nodes-specs
+      - nodes-metrics
+      - pods-addresses
+      - pods-metrics
 
   pods-nodes-storage:
     note: Pods with Nodes and Storage

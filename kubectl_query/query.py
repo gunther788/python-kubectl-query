@@ -101,7 +101,14 @@ class Query(pd.DataFrame):
 
         if sort_by:
             try:
-                self.sort_values(by=sort_by, inplace=True)
+                if sort_by == ["usagecpu"]:
+                    self["usagecpu"] = self["usagecpu"].apply(pd.to_numeric, errors="coerce")
+                    self.sort_values(by=sort_by, inplace=True, ascending=False)
+                elif sort_by == ["usagemem"]:
+                    self["usagemem"] = self["usagemem"].apply(pd.to_numeric, errors="coerce")
+                    self.sort_values(by=sort_by, inplace=True, ascending=False)
+                else:
+                    self.sort_values(by=sort_by, inplace=True)
             except Exception as e:
                 logger.warning(f"Could not sort by {sort_by}, error on {e}")
                 pass

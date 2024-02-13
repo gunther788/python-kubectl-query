@@ -19,6 +19,16 @@ tables:
         port: "$.ports[*].port"
         protocol: "$.ports[*].protocol"
 
+  services-lb:
+    note: Services with LoadBalancer data
+    api: v1
+    kind: Service
+    fields:
+      service: "$.metadata.name"
+      namespace: "$.metadata.namespace"
+      serviceip: "$.spec.clusterIP"
+      publicip: "$.status.loadBalancer.ingress[*].ip"
+
 queries:
 
   endpoints-pods-nodes:

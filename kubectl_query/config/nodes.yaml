@@ -2,6 +2,19 @@
 
 tables:
 
+  nodes-metrics:
+    note: Nodes with Metrics
+    api: metrics.k8s.io/v1beta1
+    kind: NodeMetrics
+    fields:
+      node: "$.metadata.name"
+      nodeusagecpu:
+        - "$.usage.cpu"
+        - "lambda x: round(int(x.replace('n','')) / 1000000)"
+      nodeusagemem:
+        - "$.usage.memory"
+        - "lambda x: round(int(x.replace('Ki', '')) / 1024 / 1024, 1)"
+
   nodes-ips:
     note: Nodes with their IPv4 addresses
     api: v1
@@ -34,6 +47,15 @@ tables:
       region: "$.metadata.labels.\"topology.kubernetes.io/region\""
       zone: "$.metadata.labels.\"topology.kubernetes.io/zone\""
 
+  nodes-beta-labels:
+    note: Nodes with Beta Labels
+    api: v1
+    kind: Node
+    fields:
+      node: "$.metadata.name"
+      os: "$.metadata.labels.\"beta.kubernetes.io/os\""
+      arch: "$.metadata.labels.\"beta.kubernetes.io/arch\""
+
   nodes-taints:
     note: Nodes with Taints
     api: v1
@@ -47,9 +69,15 @@ tables:
 queries:
 
   nodes:
-    note: Nodes with specs and topology data
+    note: Nodes with Specs and Topology Data
     tables:
       - nodes-ips
       - nodes-specs
       - nodes-topology-labels
       - nodes-taints
+
+  nodes-beta:
+    note: Nodes with Beta Labels and Clusters
+    tables:
+      - nodes-specs
+      - nodes-beta-labels
