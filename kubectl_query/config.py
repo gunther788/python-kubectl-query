@@ -228,15 +228,13 @@ class Config:
 
         available = []
         for name, prop in sorted(self.config[kind].items()):
-            available.append(
-                {
-                    'name': name,
-                    'aliases': ', '.join(prop.get('aliases', [])) or None,
-                    'file': prop.get('file', ''),
-                    'contexts': ', '.join(prop.get('contexts', [])),
-                    'references': ', '.join(prop.get('tables', [])) or None,
-                    'note': prop.get('note', ""),
-                }
-            )
+            available.append({
+                'name': name,
+                'aliases': ', '.join(prop.get('aliases', [])) or None,
+                'file': prop.get('file', ''),
+                'contexts': ', '.join(prop.get('contexts', [])),
+                'references': ', '.join(prop.get('tables', [])) or None,
+                'note': prop.get('note', ""),
+            })
 
         return pd.DataFrame(available)
