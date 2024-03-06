@@ -37,6 +37,14 @@ tables:
         - "lambda x: round(int(x.replace('Ki', '')) / 1024 / 1024, 1)"
       kernel: "$.status.nodeInfo.kernelVersion"
       runtime: "$.status.nodeInfo.containerRuntimeVersion"
+      conditions:
+        lasttransitiontime: "$.status.conditions[*].lastTransitionTime"
+        ready: "$.status.conditions[*].status"
+        conditiontype: "$.status.conditions[*].type"
+    filters:
+      - "conditiontype=Ready"
+    hide:
+      - conditiontype
 
   nodes-topology-labels:
     note: Nodes with Topology Labels
@@ -75,6 +83,8 @@ queries:
       - nodes-specs
       - nodes-topology-labels
       - nodes-taints
+    hide:
+      - conditiontype
 
   nodes-beta:
     note: Nodes with Beta Labels and Clusters
