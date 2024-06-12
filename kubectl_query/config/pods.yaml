@@ -80,6 +80,18 @@ tables:
         zone: "$.spec.tolerations[?key='topology.kubernetes.io/zone'].value"
       affinity: "$.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[*]"
 
+  pods-terminated-status:
+    note: Pods with container statuses
+    api: v1
+    kind: Pod
+    fields:
+      namespace: "$.metadata.namespace"
+      pod: "$.metadata.name"
+      containerstatus:
+        container: "$.status.containerStatuses[*].name"
+        finished: "$.status.containerStatuses[*].lastState.terminated.finishedAt"
+        reason: "$.status.containerStatuses[*].lastState.terminated.reason"
+
 queries:
 
   pods-topology:
@@ -93,6 +105,13 @@ queries:
     tables:
       - pods-addresses
       - pods-affinity-tolerations
+
+  pods-oomkilled:
+    note: Pods that were OOM Killed
+    tables:
+      - pods-terminated-status
+    filters:
+      - "reason=OOMKilled"
 
   pods-nodes-images:
     note: Pods with Nodes and Images
