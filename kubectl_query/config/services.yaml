@@ -11,6 +11,7 @@ tables:
     fields:
       endpoint: "$.metadata.name"
       namespace: "$.metadata.namespace"
+      service: "$.metadata.labels.\"kubernetes.io/service-name\""
       addresses:
         kind: "$.endpoints[*].targetRef.kind"
         pod: "$.endpoints[*].targetRef.name"
@@ -28,6 +29,10 @@ tables:
       namespace: "$.metadata.namespace"
       serviceip: "$.spec.clusterIP"
       publicip: "$.status.loadBalancer.ingress[*].ip"
+      conditions:
+        lasttransitiontime: "$.status.conditions[*].lastTransitionTime"
+        ready: "$.status.conditions[*].status"
+        conditiontype: "$.status.conditions[*].type"
 
 queries:
 
@@ -38,3 +43,15 @@ queries:
     tables:
       - endpointslices-ip-ports
       - pods-ports
+
+  loadbalancers:
+    aliases:
+      - lb
+    note: Services of type LoadBalancer
+    tables:
+      - services-lb
+    filters:
+      - "ready=True"
+    hide:
+      - conditiontype
+      - ready

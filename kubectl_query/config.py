@@ -99,7 +99,7 @@ class Config:
         if 'filters' in prop:
             self.filters.extend(prop['filters'])
         if 'patterns' in prop:
-            self.filters.extend(prop['filters'])
+            self.filters.extend(prop['patterns'])
 
         for table in prop.get('tables', {}):
             self.init_table(table)
@@ -128,7 +128,7 @@ class Config:
         if 'filters' in prop:
             self.filters.extend(prop['filters'])
         if 'patterns' in prop:
-            self.filters.extend(prop['filters'])
+            self.filters.extend(prop['patterns'])
 
         # for fields we need to compile the path
         for field, path in prop.get("fields", {}).items():

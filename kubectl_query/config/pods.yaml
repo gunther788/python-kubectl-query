@@ -129,17 +129,12 @@ queries:
     note: Pods with Nodes and Metrics
     aliases:
       - pnm
-    hide:
-      - kubelet
-      - kernel
-      - runtime
     sort:
       - usagecpu
     tables:
-      - nodes-specs
-      - nodes-metrics
-      - pods-addresses
       - pods-metrics
+      - pods-nodes
+      - nodes-metrics
 
   pods-nodes-storage:
     note: Pods with Nodes and Storage
