@@ -1,7 +1,7 @@
+import ast  # noqa: F401
 import ipaddress  # noqa: F401
 import itertools
 import logging
-import ast  # noqa: F401
 
 import pandas as pd
 from kubernetes.dynamic.resource import ResourceField
