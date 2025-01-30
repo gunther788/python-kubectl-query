@@ -137,7 +137,9 @@ class Config:
                     prop["fields"][field][subfield] = parse(subpath)
 
             elif isinstance(path, list):
-                prop["fields"][field] = [parse(path[0])] + ['unroll' if f == 'unroll' else eval(f) for f in path[1:]]
+                prop["fields"][field] = [parse(path[0])] + [
+                    'unroll' if f == 'unroll' else 'unrange' if f == 'unrange' else eval(f) for f in path[1:]
+                ]
 
             elif isinstance(path, str):
                 prop["fields"][field] = parse(path)

@@ -1,6 +1,7 @@
 import ipaddress  # noqa: F401
 import itertools
 import logging
+import ast  # noqa: F401
 
 import pandas as pd
 from kubernetes.dynamic.resource import ResourceField
@@ -57,6 +58,28 @@ class Table(pd.DataFrame):
                 return value[0]
             return value
 
+        def unrange(value):
+            if isinstance(value, list) and len(value) == 1:
+                value = value[0]
+            value = ast.literal_eval(value)
+            ret = value
+
+            if isinstance(value, dict):
+                if 'start' in value and 'stop' in value:
+                    ret = []
+                    addr = ipaddress.IPv4Address(value['start'])
+                    stop = ipaddress.IPv4Address(value['stop'])
+                    while addr <= stop:
+                        ret.append(str(addr))
+                        addr = addr + 1
+
+                elif 'cidr' in value:
+                    logger.debug(f"Unroll {value}")
+                    ret = [str(addr) for addr in ipaddress.IPv4Network(value['cidr'])]
+                    logger.debug(f"   got {ret}")
+
+            return ret
+
         def extract_values(field, path, entry):
             """
             Fields can be defined as json paths, or json paths to be
@@ -79,11 +102,14 @@ class Table(pd.DataFrame):
             elif isinstance(path, list):
                 item[field] = [format_value(match.value) for match in path[0].find(entry)]
                 for f in path[1:]:
-                    if f != 'unroll':
+                    if f != 'unroll' and f != 'unrange':
                         item[field] = [f(v) for v in item[field]]
 
                 if 'unroll' in path:
                     item[field] = unroll(item[field])
+
+                if 'unrange' in path:
+                    item[field] = unrange(item[field])
 
             else:
                 item[field] = [format_value(match.value) for match in path.find(entry)] or ['<none>']
