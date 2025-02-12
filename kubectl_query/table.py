@@ -3,11 +3,11 @@ import glob
 import ipaddress  # noqa: F401
 import itertools
 import logging
-import requests
-from yaml import safe_load
 
 import pandas as pd
+import requests
 from kubernetes.dynamic.resource import ResourceField
+from yaml import safe_load
 
 logger = logging.getLogger('kubectl-query')
 

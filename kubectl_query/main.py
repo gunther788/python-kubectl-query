@@ -1,7 +1,7 @@
 import logging
+import os.path
 
 import click
-import os.path
 from colors import color
 from tabulate import tabulate
 
