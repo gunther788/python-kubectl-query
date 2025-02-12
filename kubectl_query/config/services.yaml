@@ -28,7 +28,7 @@ tables:
       service: "$.metadata.name"
       namespace: "$.metadata.namespace"
       serviceip: "$.spec.clusterIP"
-      publicip: "$.status.loadBalancer.ingress[*].ip"
+      lbip: "$.status.loadBalancer.ingress[*].ip"
       conditions:
         lasttransitiontime: "$.status.conditions[*].lastTransitionTime"
         ready: "$.status.conditions[*].status"

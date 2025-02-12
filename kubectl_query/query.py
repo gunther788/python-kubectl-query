@@ -13,7 +13,7 @@ class Query(pd.DataFrame):
     Represents the entire query and holds the result
     """
 
-    def __init__(self, client, config, query_name):
+    def __init__(self, client, config, include, query_name):
         """
         Load each resource and combine the result
         """
@@ -36,7 +36,7 @@ class Query(pd.DataFrame):
         else:
             # for each kind of resource, build a table and append it to the data set
             for table in tablenames:
-                data.append(Table(client, table, **config.tables[table]))
+                data.append(Table(client, table, include, **config.tables[table]))
 
         # zip through the data set and pd.merge them all together
         try:

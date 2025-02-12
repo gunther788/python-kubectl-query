@@ -1,6 +1,7 @@
 import logging
 
 import click
+import os.path
 from colors import color
 from tabulate import tabulate
 
@@ -112,6 +113,16 @@ CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
     Show available tables, queries and bundles
     """,
 )
+@click.option(
+    "-I",
+    "--include",
+    "include",
+    default=[],
+    multiple=True,
+    help="""
+    Include directory with yaml files
+    """,
+)
 @click.argument("args", nargs=-1)
 # pylint: disable=too-many-arguments
 def main(
@@ -126,6 +137,7 @@ def main(
     hide_columns,
     list_columns,
     list_available,
+    include,
     args,
 ):
     """
@@ -141,12 +153,14 @@ def main(
         logger.setLevel(logging.INFO)
 
     patterns = list(patterns)
+    include = [os.path.expanduser(path) for path in include]
     logger.debug("Options:")
     logger.debug(f"  Config in {configpaths}")
     logger.debug(f"  Contexts set to {contexts}")
     logger.debug(f"  Patterns set to {patterns}")
     logger.debug(f"  Filters set to {filters}")
     logger.debug(f"  Table format is {tablefmt}")
+    logger.debug(f"  Include is {include}")
 
     # shortcuts for help pages
     if list_available:
@@ -188,7 +202,7 @@ def main(
 
     for arg in config.show:
         # load all data
-        result = Query(client, config, arg)
+        result = Query(client, config, include, arg)
         result.postprocess(
             patterns,
             filters or config.filters,

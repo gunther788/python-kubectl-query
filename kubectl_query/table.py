@@ -1,7 +1,10 @@
 import ast  # noqa: F401
+import glob
 import ipaddress  # noqa: F401
 import itertools
 import logging
+import requests
+from yaml import safe_load
 
 import pandas as pd
 from kubernetes.dynamic.resource import ResourceField
@@ -19,7 +22,7 @@ class Table(pd.DataFrame):
     multiple records
     """
 
-    def __init__(self, client, table, api, kind, fields, **kwargs):
+    def __init__(self, client, table, include, api, kind, fields, **kwargs):
         """
         Table is really just a fancy constructor for a DataFrame that stores
         the result of an API call in table format... the magic lies within
@@ -141,28 +144,76 @@ class Table(pd.DataFrame):
         if len(contexts) == 1:
             kwargs['no_context'] = True
 
-        # for each cluster, get the data and build one long table with all the data
-        for context in contexts:
+        if api == 'file':
+
+            # load data from yaml files found in the include paths
+            resources = {}
+
+            logger.debug(f'Scanning {include}')
+            for path in include:
+                for filename in glob.glob(f"{path}/**/*.y*ml", recursive=True):
+                    logger.debug(f'Reading {filename}')
+                    with open(filename) as stream:
+                        try:
+                            resources.update(safe_load(stream))
+                        except yaml.YAMLError as e:
+                            logger.warning(e)
+
+            for entry in resources[kind]:
+                item = {}
+
+                # extract fields by going through all paths requested
+                for field, path in fields.items():
+                    item.update(extract_values(field, path, entry))
+
+                # expand the result and add to table
+                items.extend(product_dict(**item))
+
+        elif api == 'url':
+
+            # load data from an arbitrary url instead
+            url = kwargs.get('url')
             try:
-                logger.debug(f"  Loading '{table}' from '{context}'")
-                resource = client.client(context).resources.get(api_version=api, kind=kind)
-
-                for entry in resource.get().items:
-                    if kwargs.get('no_context', False):
-                        item = {}
-                    else:
-                        item = {'context': [context]}
-
-                    # extract fields by going through all paths requested
-                    for field, path in fields.items():
-                        item.update(extract_values(field, path, entry))
-
-                    # expand the result and add to table
-                    items.extend(product_dict(**item))
-
+                r = requests.get(url, headers=kwargs.get('headers', {}))
             except Exception as e:
-                logger.info(f"Failed to get '{kind}' from '{context}', {e}")
-                pass
+                logger.info(f"Could not request {url}: {e}")
+
+            resources = safe_load(r.text)
+
+            for entry in resources[kind]:
+                item = {}
+
+                # extract fields by going through all paths requested
+                for field, path in fields.items():
+                    item.update(extract_values(field, path, entry))
+
+                # expand the result and add to table
+                items.extend(product_dict(**item))
+
+        else:
+
+            # for each cluster, get the data and build one long table with all the data
+            for context in contexts:
+                try:
+                    logger.debug(f"  Loading '{table}' from '{context}'")
+                    resource = client.client(context).resources.get(api_version=api, kind=kind)
+
+                    for entry in resource.get().items:
+                        if kwargs.get('no_context', False):
+                            item = {}
+                        else:
+                            item = {'context': [context]}
+
+                        # extract fields by going through all paths requested
+                        for field, path in fields.items():
+                            item.update(extract_values(field, path, entry))
+
+                        # expand the result and add to table
+                        items.extend(product_dict(**item))
+
+                except Exception as e:
+                    logger.info(f"Failed to get '{kind}' from '{context}', {e}")
+                    pass
 
         logger.debug(f"  Loaded {len(items)} {table} ({kind})")
 
