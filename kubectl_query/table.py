@@ -6,8 +6,8 @@ import logging
 
 import pandas as pd
 import requests
+import yaml
 from kubernetes.dynamic.resource import ResourceField
-from yaml import safe_load
 
 logger = logging.getLogger('kubectl-query')
 
@@ -155,7 +155,7 @@ class Table(pd.DataFrame):
                     logger.debug(f'Reading {filename}')
                     with open(filename) as stream:
                         try:
-                            resources.update(safe_load(stream))
+                            resources.update(yaml.safe_load(stream))
                         except yaml.YAMLError as e:
                             logger.warning(e)
 
@@ -178,7 +178,7 @@ class Table(pd.DataFrame):
             except Exception as e:
                 logger.info(f"Could not request {url}: {e}")
 
-            resources = safe_load(r.text)
+            resources = yaml.safe_load(r.text)
 
             for entry in resources[kind]:
                 item = {}
