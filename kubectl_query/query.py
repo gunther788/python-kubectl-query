@@ -76,14 +76,19 @@ class Query(pd.DataFrame):
             for k, v in [f.split('=') for f in filters]:
                 k = k.lower()
                 logger.debug(f"Filtering on '{k}' with pattern '.*{v}.*'")
-                matches = self[k].str.match(f".*{v}.*")
-                matches.fillna(False, inplace=True)
+                try:
+                    matches = self[k].str.match(f".*{v}.*")
+                    matches.fillna(False, inplace=True)
 
-                # invert the selection to be able to drop those that don't match
-                if any(matches.values):
-                    drop_rows = self[~matches.values].index
-                    self.drop(drop_rows, inplace=True)
-                    logger.debug(f"  Dropped {len(drop_rows)} rows that did not match {patterns}")
+                    # invert the selection to be able to drop those that don't match
+                    if any(matches.values):
+                        drop_rows = self[~matches.values].index
+                        self.drop(drop_rows, inplace=True)
+                        logger.debug(f"  Dropped {len(drop_rows)} rows that did not match {patterns}")
+
+                except Exception as e:
+                    logger.info(f"Failed to filter on '{k}' with pattern '.*{v}.*' ({e})")
+                    pass
 
         # fill the NaN's with dashes
         self.fillna("-", inplace=True)
