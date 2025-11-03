@@ -25,7 +25,12 @@ class Client:
             if 'all' in contexts:
                 self._default_contexts = self._known_contexts
             else:
-                self._default_contexts = contexts
+                contextset = set()
+                for prefix in contexts:
+                    for context in self._known_contexts:
+                        if context.startswith(prefix):
+                            contextset.add(context)
+                self._default_contexts = list(contextset)
 
         else:
             self._default_contexts = [default_context['name']]
