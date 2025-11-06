@@ -20,19 +20,23 @@ tables:
         port: "$.ports[*].port"
         protocol: "$.ports[*].protocol"
 
-  services-lb:
-    note: Services with LoadBalancer data
+  loadbalancer-services:
+    note: Services of type LoadBalancer
+    aliases:
+      - lbs
     api: v1
     kind: Service
     fields:
       service: "$.metadata.name"
       namespace: "$.metadata.namespace"
       serviceip: "$.spec.clusterIP"
+      servicetype: "$.spec.type"
       lbip: "$.status.loadBalancer.ingress[*].ip"
-      conditions:
-        lasttransitiontime: "$.status.conditions[*].lastTransitionTime"
-        ready: "$.status.conditions[*].status"
-        conditiontype: "$.status.conditions[*].type"
+      ready: "$.status.conditions[*].status"
+    filters:
+      - servicetype=LoadBalancer
+    sort:
+      - lbip
 
 queries:
 
@@ -43,15 +47,3 @@ queries:
     tables:
       - endpointslices-ip-ports
       - pods-ports
-
-  loadbalancers:
-    aliases:
-      - lb
-    note: Services of type LoadBalancer
-    tables:
-      - services-lb
-    filters:
-      - "ready=True"
-    hide:
-      - conditiontype
-      - ready

@@ -10,10 +10,15 @@ tables:
     kind: Gateway
     fields:
       gateway: "$.metadata.name"
-      gatewaynamespace: "$.metadata.namespace"
-      specaddress:
-        - "$.spec.addresses[*].value"
+      gwnamespace: "$.metadata.namespace"
+      gwclass: spec.gatewayClassName
+      address:
+        - "$.status.addresses[*].value"
         - unroll
+      listeners:
+        listenname: "$.spec.listeners[*].name"
+        listenprotocol: "$.spec.listeners[*].protocol"
+        listenport: "$.spec.listeners[*].port"
 
   httproutes:
     note: HTTPRoute with gateways
@@ -27,24 +32,7 @@ tables:
       parentrefs:
         gateway: "$.spec.parentRefs[*].name"
         gatewaynamespace: "$.spec.parentRefs[*].namespace"
-      hostnames:
-        - "$.spec.hostnames[*]"
-        - unroll
-      backendrefs:
-        service: "$.spec.rules[*].backendRefs[*].name"
-
-  grpcroutes:
-    note: GRPCRoute with gateways
-    aliases:
-      - route
-    api: gateway.networking.k8s.io/v1
-    kind: GRPCRoute
-    fields:
-      route: "$.metadata.name"
-      namespace: "$.metadata.namespace"
-      parentrefs:
-        gateway: "$.spec.parentRefs[*].name"
-        gatewaynamespace: "$.spec.parentRefs[*].namespace"
+        listenname: "$.spec.parentRefs[*].sectionName"
       hostnames:
         - "$.spec.hostnames[*]"
         - unroll
@@ -54,20 +42,13 @@ tables:
 queries:
 
   gateway-httproutes:
-    note: Gateway to Route (HTTP)
+    note: Gateway to HTTPRoute
     aliases:
-      - grh
+      - gh
+      - gr
     tables:
       - gateways
       - httproutes
-
-  gateway-grpcroutes:
-    note: Gateway to Route (GRPC)
-    aliases:
-      - grg
-    tables:
-      - gateways
-      - grpcroutes
 
   gateway-route-service:
     note: Gateway to Route to Service
@@ -78,13 +59,3 @@ queries:
       - httproutes
       - endpointslices-ip-ports
       - pods-ports
-
-bundles:
-
-  gateway-routes:
-    note: Gateway to Route
-    aliases:
-      - gr
-    queries:
-      - gateway-httproutes
-      - gateway-grpcroutes
