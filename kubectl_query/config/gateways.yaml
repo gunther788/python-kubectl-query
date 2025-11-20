@@ -36,8 +36,9 @@ tables:
       hostnames:
         - "$.spec.hostnames[*]"
         - unroll
-      backendrefs:
+      backend:
         service: "$.spec.rules[*].backendRefs[*].name"
+        filter: "$.spec.rules[*].filters[*].extensionRef.name"
 
 queries:
 

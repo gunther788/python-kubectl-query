@@ -24,7 +24,7 @@ These kinds of questions require:
 
 ### Tables
 
-Instead, let's define building blocks (`tables`) of data that are extracted from individual Kuberentes resources.
+Instead, let's define building blocks (`tables`) of data that are extracted from individual Kubernetes resources.
 
 Example:
 

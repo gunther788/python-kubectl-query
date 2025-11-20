@@ -54,6 +54,9 @@ class Table(pd.DataFrame):
                 if value.effect:
                     return f"{value.key}={value.value}:{value.effect}"
 
+                # convert to string and back to yaml
+                # return yaml.dump(yaml.load(str(value), Loader=yaml.FullLoader)).rstrip()
+
             return str(value)
 
         def unroll(value):
@@ -204,12 +207,19 @@ class Table(pd.DataFrame):
                         else:
                             item = {'context': [context]}
 
-                        # extract fields by going through all paths requested
-                        for field, path in fields.items():
-                            item.update(extract_values(field, path, entry))
+                        # cilium network policies, for example, allow `specs` as a list of spec
+                        specs = entry.get('specs', [entry['spec']])
+                        subentry = entry
 
-                        # expand the result and add to table
-                        items.extend(product_dict(**item))
+                        for spec in specs:
+                            setattr(subentry, 'spec', spec)
+
+                            # extract fields by going through all paths requested
+                            for field, path in fields.items():
+                                item.update(extract_values(field, path, subentry))
+
+                            # expand the result and add to table
+                            items.extend(product_dict(**item))
 
                 except Exception as e:
                     logger.info(f"Failed to get '{kind}' from '{context}', {e}")
