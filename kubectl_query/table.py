@@ -195,13 +195,24 @@ class Table(pd.DataFrame):
 
         else:
 
+            # limit queries to namespaces
+            namespaces = kwargs.get('namespaces', [])
+
             # for each cluster, get the data and build one long table with all the data
             for context in contexts:
                 try:
                     logger.debug(f"  Loading '{table}' from '{context}'")
                     resource = client.client(context).resources.get(api_version=api, kind=kind)
 
-                    for entry in resource.get().items:
+                    # if the config limits us to certain namespaces, only get that data to begin with
+                    entries = []
+                    if namespaces:
+                        for namespace in namespaces:
+                            entries.extend(resource.get(namespace=namespace).items)
+                    else:
+                        entries = resource.get().items
+
+                    for entry in entries:
                         if kwargs.get('no_context', False):
                             item = {}
                         else:
