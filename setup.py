@@ -26,7 +26,7 @@ DEV_REQUIREMENTS = [
 
 setuptools.setup(
     name='python-kubectl-query',
-    version='0.3.0',
+    version='0.3.4',
     description='Query multiple cluster resources and join them together as tables',
     long_description=long_description,
     long_description_content_type="text/markdown",

@@ -65,8 +65,16 @@ class Table(pd.DataFrame):
             return value
 
         def unrange(value):
-            if isinstance(value, list) and len(value) == 1:
-                value = value[0]
+            if isinstance(value, list):
+                if len(value) == 1:
+                    value = value[0]
+
+                else:
+                    ret = []
+                    for v in value:
+                        ret.extend(unrange(v))
+                    return ret
+
             value = ast.literal_eval(value)
             ret = value
 
@@ -80,7 +88,7 @@ class Table(pd.DataFrame):
                         addr = addr + 1
 
                 elif 'cidr' in value:
-                    logger.debug(f"Unroll {value}")
+                    logger.debug(f"Unroll CIDR {value}")
                     ret = [str(addr) for addr in ipaddress.IPv4Network(value['cidr'])]
                     logger.debug(f"   got {ret}")
 
