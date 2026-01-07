@@ -2,6 +2,21 @@
 
 tables:
 
+  traefik-deployments:
+    note: Traefik Deployments
+    api: apps/v1
+    kind: Deployment
+    fields:
+      name: "$.metadata.name"
+      namespace: "$.metadata.namespace"
+      app-name: "$.metadata.labels.\"app.kubernetes.io/name\""
+      labelselector:
+        - "$.spec.template.spec.containers[0].args[*]"
+        - "lambda x: x.replace('--providers.kubernetesgateway.labelSelector=app.kubernetes.io/','')"
+    filters:
+      - app-name=traefik
+      - labelselector=instance
+
   traefik-ingressroutes:
     note: Traefik IngressRoutes
     api: traefik.io/v1alpha1

@@ -2,6 +2,16 @@
 
 tables:
 
+  gatewayclasses:
+    note: GatewayClasses with labels
+    aliases:
+      - gwc
+    api: gateway.networking.k8s.io/v1
+    kind: GatewayClass
+    fields:
+      gatewayclass: "$.metadata.name"
+      instance: "$.metadata.labels.\"app.kubernetes.io/instance\""
+  
   gateways:
     note: Gateways with targets
     aliases:
@@ -11,10 +21,8 @@ tables:
     fields:
       gateway: "$.metadata.name"
       gwnamespace: "$.metadata.namespace"
-      gwclass: spec.gatewayClassName
-      address:
-        - "$.status.addresses[*].value"
-        - unroll
+      gwclass: "$.spec.gatewayClassName"
+      address: "$.status.addresses[*].value"
       listeners:
         listenname: "$.spec.listeners[*].name"
         listenprotocol: "$.spec.listeners[*].protocol"
@@ -33,12 +41,9 @@ tables:
         gateway: "$.spec.parentRefs[*].name"
         gatewaynamespace: "$.spec.parentRefs[*].namespace"
         listenname: "$.spec.parentRefs[*].sectionName"
-      hostnames:
-        - "$.spec.hostnames[*]"
-        - unroll
       backend:
+        hostnames: "$.spec.hostnames[*]"
         service: "$.spec.rules[*].backendRefs[*].name"
-        filter: "$.spec.rules[*].filters[*].extensionRef.name"
 
 queries:
 
