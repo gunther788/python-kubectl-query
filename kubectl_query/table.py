@@ -9,6 +9,13 @@ import requests
 import yaml
 from kubernetes.dynamic.resource import ResourceField
 
+import re
+import dns.xfr
+import dns.query
+import dns.zone
+from dns.exception import DNSException
+import dns.rdatatype
+
 logger = logging.getLogger('kubectl-query')
 
 
@@ -200,6 +207,51 @@ class Table(pd.DataFrame):
 
                 # expand the result and add to table
                 items.extend(product_dict(**item))
+
+        elif api == 'dns':
+
+            nameserver = kwargs.get('nameserver', 'localhost')
+            for domain in kwargs.get('domains', []):
+                if domain[-1] != ".":
+                    domain = domain + "."
+                logger.debug(f"  Loading zone {domain} from {nameserver}")
+                try:
+                    zone = dns.zone.Zone(domain, relativize=False)
+                    query, _ = dns.xfr.make_query(zone)
+                    dns.query.inbound_xfr(nameserver, zone, query)
+                except dns.exception.DNSException as e:
+                    logger.warning(e)
+                    pass
+
+                for node, records in zone.nodes.items():
+
+                    nodename = str(node)[:-1]
+                    nodename = nodename.replace("external-dns-a-", "")
+
+                    for r in records.rdatasets:
+                        rdtype = dns.rdatatype.to_text(r.rdtype)
+
+                        if rdtype in ('RRSIG') or 'NSEC3' in rdtype or 'DNSKEY' in rdtype:
+                            continue
+
+                        entry = {
+                            'name': nodename,
+                            'zone': domain,
+                            'type': rdtype,
+                            'records': [],
+                        }
+
+                        for e in r.items:
+                            entry['records'].append(str(e))
+
+                        # extract fields by going through all paths requested
+                        item = {}
+
+                        for field, path in fields.items():
+                            item.update(extract_values(field, path, entry))
+
+                        # expand the result and add to table
+                        items.extend(product_dict(**item))
 
         else:
 

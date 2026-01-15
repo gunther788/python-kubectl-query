@@ -11,6 +11,7 @@ REQUIREMENTS = [
     "pandas",
     "numpy",
     "tabulate",
+    "dnspython",
 ]
 
 DEV_REQUIREMENTS = [
