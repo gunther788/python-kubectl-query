@@ -4,17 +4,15 @@ import ipaddress  # noqa: F401
 import itertools
 import logging
 
+import dns.exception
+import dns.query
+import dns.rdatatype
+import dns.xfr
+import dns.zone
 import pandas as pd
 import requests
 import yaml
 from kubernetes.dynamic.resource import ResourceField
-
-import re
-import dns.xfr
-import dns.query
-import dns.zone
-from dns.exception import DNSException
-import dns.rdatatype
 
 logger = logging.getLogger('kubectl-query')
 
