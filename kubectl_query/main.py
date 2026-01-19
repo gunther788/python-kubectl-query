@@ -192,6 +192,9 @@ def main(
                 # pylint: disable=cell-var-from-loop
                 result[column] = result[column].map(lambda x: color(x, columncolor))
 
+        elif tablefmt == "csv":
+            return result.to_csv(index=False)
+
         return tabulate(
             result,
             tablefmt=tablefmt.replace("color", "plain"),

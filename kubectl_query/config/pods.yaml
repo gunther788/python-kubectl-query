@@ -25,6 +25,17 @@ tables:
         usagecpu: "$.containers[*].usage.cpu.`sub(/([0-9]+)[0-9]{6}n/, \\\\1)`"
         usagemem: "$.containers[*].usage.memory.`sub(/([0-9]+){3}Ki/, \\\\1)`"
 
+  pods-cpurequests:
+    note: Pods with Metrics
+    api: v1
+    kind: Pod
+    fields:
+      namespace: "$.metadata.namespace"
+      pod: "$.metadata.name"
+      requestscpu:
+        - "$.spec.containers[*].resources.requests.cpu"
+        - "lambda x: int(x[:-1]) * 0.001 if x[-1] == 'm' else int(x) * 1.0"
+
   pods-nodes:
     note: Pods with nodes
     api: v1
