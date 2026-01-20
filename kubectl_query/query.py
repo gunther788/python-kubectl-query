@@ -36,7 +36,11 @@ class Query(pd.DataFrame):
         else:
             # for each kind of resource, build a table and append it to the data set
             for table in tablenames:
-                data.append(Table(client, table, include, **config.tables[table]))
+                d = Table(client, table, include, **config.tables[table])
+                for column in d:
+                    if isinstance(d[column][0], list):
+                        d = d.explode(column)
+                data.append(d)
 
         # zip through the data set and pd.merge them all together
         try:

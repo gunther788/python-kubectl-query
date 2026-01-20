@@ -62,6 +62,9 @@ class Table(pd.DataFrame):
                 # convert to string and back to yaml
                 # return yaml.dump(yaml.load(str(value), Loader=yaml.FullLoader)).rstrip()
 
+            elif isinstance(value, list):
+                return value
+
             return str(value)
 
         def unroll(value):
