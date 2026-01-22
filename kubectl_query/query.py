@@ -81,7 +81,7 @@ class Query(pd.DataFrame):
                 k = k.lower()
                 logger.debug(f"Filtering on '{k}' with pattern '.*{v}.*'")
                 try:
-                    matches = self[k].str.match(f".*{v}.*")
+                    matches = self[k].str.match(f".*{v}.*", na=False)
                     matches.infer_objects(copy=False)
 
                     # invert the selection to be able to drop those that don't match

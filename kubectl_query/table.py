@@ -227,7 +227,6 @@ class Table(pd.DataFrame):
                 for node, records in zone.nodes.items():
 
                     nodename = str(node)[:-1]
-                    nodename = nodename.replace("external-dns-a-", "")
 
                     for r in records.rdatasets:
                         rdtype = dns.rdatatype.to_text(r.rdtype)
