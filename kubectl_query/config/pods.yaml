@@ -66,6 +66,7 @@ tables:
       node: "$.spec.nodeName"
       containers:
         container: "$.spec.containers[*].name"
+        pullsecrets: "$.spec.imagePullSecrets[*].name"
         image: "$.spec.containers[*].image"
 
   pods-pvcs:
